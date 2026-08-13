@@ -1,24 +1,25 @@
 package com.eams.entity;
+
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
 @Table(name = "roles")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Role {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String name;
 
-    @Column(unique = true, nullable = false, length = 200)
-    private String description;
-
-//    @OneToMany(mappedBy = "role")
-//    private List<User> users = new ArrayList<>();
+    public static class DamageReport {
+    }
 }

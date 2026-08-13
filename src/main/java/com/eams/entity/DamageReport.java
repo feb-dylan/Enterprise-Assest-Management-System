@@ -9,31 +9,39 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "damage_reports")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class DamageReport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 255)
-    private String email;
-
-    @Column(nullable = false)
-    private String password;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "asset_id", nullable = false)
+    private Asset asset;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+    @JoinColumn(name = "employee_id", nullable = false)
+    private Employee employee;
 
-    @Column(nullable = false)
-    private boolean enabled = true;
+    @Column(nullable = false, length = 2000)
+    private String description;
 
-    @Column(name = "email_verified", nullable = false)
-    private boolean emailVerified = false;
+    @Column(name = "reported_date", nullable = false)
+    private LocalDateTime reportedDate;
+
+    @Column(name = "evidence_url", length = 500)
+    private String evidenceUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private DamageStatus status = DamageStatus.REPORTED;
+
+    @Column(name = "resolution_note", length = 1000)
+    private String resolutionNote;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -44,6 +52,11 @@ public class User {
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
+
+        if (reportedDate == null) {
+            reportedDate = now;
+        }
+
         createdAt = now;
         updatedAt = now;
     }

@@ -9,31 +9,29 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "departments",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_department_name",
+                        columnNames = "name"
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class Department {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 255)
-    private String email;
+    @Column(nullable = false, length = 100)
+    private String name;
 
-    @Column(nullable = false)
-    private String password;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
-
-    @Column(nullable = false)
-    private boolean enabled = true;
-
-    @Column(name = "email_verified", nullable = false)
-    private boolean emailVerified = false;
+    @Column(length = 500)
+    private String description;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -51,5 +49,12 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum DamageStatus {
+        REPORTED,
+        UNDER_REVIEW,
+        REPAIRING,
+        RESOLVED
     }
 }
