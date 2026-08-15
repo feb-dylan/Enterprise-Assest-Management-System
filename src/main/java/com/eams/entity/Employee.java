@@ -64,6 +64,18 @@ public class Employee {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public Employee(
+            String employeeCode,
+            String firstName,
+            String lastName,
+            Department department) {
+
+        this.employeeCode = employeeCode;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.department = department;
+    }
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
