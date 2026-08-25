@@ -1,0 +1,17 @@
+$kind: http-request
+name: Create Asset Request
+method: POST
+url: '{{baseUrl}}/api/asset-requests'
+order: 1000
+description: 'Submit a new asset request. employeeId (Long, required), assetId (Long, required), reason (String, required, max 1000 chars). Returns an AssetRequestResponse with id, employeeId, assetId, requestDate, reason, and status.'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "employeeId": 1,
+      "assetId": 1,
+      "reason": "Need a laptop for remote work"
+    }
