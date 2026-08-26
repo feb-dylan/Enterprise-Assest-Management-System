@@ -51,10 +51,5 @@ public class Department {
         updatedAt = LocalDateTime.now();
     }
 
-    public enum DamageStatus {
-        REPORTED,
-        UNDER_REVIEW,
-        REPAIRING,
-        RESOLVED
-    }
+
 }
