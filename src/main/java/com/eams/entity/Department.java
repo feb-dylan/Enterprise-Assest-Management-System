@@ -39,6 +39,11 @@ public class Department {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public Department(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
