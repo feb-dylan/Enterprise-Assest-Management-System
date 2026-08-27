@@ -1,24 +1,12 @@
 package com.eams.service;
 
-import com.eams.dto.request.EmployeeRequest;
+import com.eams.dto.request.CreateEmployeeRequest;
 import com.eams.dto.response.EmployeeResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface EmployeeService {
-
-    EmployeeResponse createEmployee(EmployeeRequest request);
-
-    Page<EmployeeResponse> getAllEmployees(int page, int size);
-
+    EmployeeResponse createEmployee(CreateEmployeeRequest request);
     EmployeeResponse getEmployeeById(Long id);
-
-    EmployeeResponse updateEmployee(Long id, EmployeeRequest request);
-
-    void deleteEmployee(Long id);
-
-    Page<EmployeeResponse> searchEmployees(
-            String keyword,
-            int page,
-            int size
-    );
+    Page<EmployeeResponse> getAllEmployees(Pageable pageable);
 }

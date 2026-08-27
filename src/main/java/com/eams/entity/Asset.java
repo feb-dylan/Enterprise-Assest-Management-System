@@ -1,7 +1,6 @@
 package com.eams.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,36 +10,21 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "assets",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_asset_code",
-                        columnNames = "asset_code"
-                ),
-                @UniqueConstraint(
-                        name = "uk_asset_serial_number",
-                        columnNames = "serial_number"
-                )
-        }
-)
+@Table(name = "assets")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Asset {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "asset_code", nullable = false, length = 50)
-    private String assetCode;
+    @Column(name = "asset_tag", nullable = false, unique = true, length = 100)
+    private String assetTag;
 
-    @Column(nullable = false, length = 150)
+    @Column(name = "name", nullable = false, length = 150)
     private String name;
-
-    @Column(length = 1000)
-    private String description;
 
     @Column(name = "serial_number", unique = true, length = 100)
     private String serialNumber;
@@ -49,37 +33,42 @@ public class Asset {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     @Column(name = "purchase_date")
     private LocalDate purchaseDate;
 
-    @Column(name = "purchase_price", precision = 15, scale = 2)
-    private BigDecimal purchasePrice;
+    @Column(name = "purchase_cost", precision = 12, scale = 2)
+    private BigDecimal purchaseCost;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private AssetStatus status = AssetStatus.AVAILABLE;
+    @Column(name = "status", nullable = false, length = 30)
+    private AssetStatus status;
 
-    @Column(length = 255)
-    private String location;
+    @Column(name = "qr_code_url")
+    private String qrCodeUrl;
 
-    @Column(name = "image_url", length = 500)
+    @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "specification", columnDefinition = "TEXT")
+    private String specification;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
+        this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -3,7 +3,8 @@ package com.eams.entity;
 public enum AssetStatus {
     AVAILABLE,
     ASSIGNED,
-    MAINTENANCE,
+    UNDER_REPAIR,
     DAMAGED,
-    RETIRED
+    DISPOSED,
+    RESERVED
 }

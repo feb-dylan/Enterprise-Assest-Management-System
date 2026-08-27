@@ -2,26 +2,14 @@ package com.eams.repository;
 
 import com.eams.entity.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
-
     Optional<Employee> findByEmployeeCode(String employeeCode);
-
+    Optional<Employee> findByEmail(String email);
     boolean existsByEmployeeCode(String employeeCode);
-
-    Optional<Employee> findByUserId(Long userId);
-
-    boolean existsByUserId(Long userId);
-
-    Page<Employee> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmployeeCodeContainingIgnoreCase(
-            String firstName,
-            String lastName,
-            String employeeCode,
-            Pageable pageable
-    );
-
+    boolean existsByEmail(String email);
 }

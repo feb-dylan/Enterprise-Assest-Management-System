@@ -1,53 +1,50 @@
-    package com.eams.entity;
+package com.eams.entity;
 
-    import jakarta.persistence.*;
-    import lombok.AccessLevel;
-    import lombok.Getter;
-    import lombok.NoArgsConstructor;
-    import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-    import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-    @Entity
-    @Table(
-            name = "categories",
-            uniqueConstraints = {
-                    @UniqueConstraint(
-                            name = "uk_category_name",
-                            columnNames = "name"
-                    )
-            }
-    )
-    @Getter
-    @Setter
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public class Category {
+@Entity
+@Table(name = "categories")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Category {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @Column(nullable = false, length = 100)
-        private String name;
+    @Column(name = "name", nullable = false, unique = true, length = 100)
+    private String name;
 
-        @Column(length = 500)
-        private String description;
+    @Column(name = "code", nullable = false, unique = true, length = 50)
+    private String code;
 
-        @Column(name = "created_at", nullable = false, updatable = false)
-        private LocalDateTime createdAt;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
-        @Column(name = "updated_at", nullable = false)
-        private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "category")
+    private List<Asset> assets = new ArrayList<>();
 
-        @PrePersist
-        protected void onCreate() {
-            LocalDateTime now = LocalDateTime.now();
-            createdAt = now;
-            updatedAt = now;
-        }
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-        @PreUpdate
-        protected void onUpdate() {
-            updatedAt = LocalDateTime.now();
-        }
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}

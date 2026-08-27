@@ -2,16 +2,17 @@ package com.eams.repository;
 
 import com.eams.entity.DamageReport;
 import com.eams.entity.DamageStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
-public interface DamageReportRepository
-        extends JpaRepository<DamageReport, Long> {
-
-    List<DamageReport> findByEmployeeId(Long employeeId);
-
-    List<DamageReport> findByAssetId(Long assetId);
-
-    List<DamageReport> findByStatus(DamageStatus status);
+@Repository
+public interface DamageReportRepository extends JpaRepository<DamageReport, Long> {
+    Optional<DamageReport> findByReportNumber(String reportNumber);
+    long countByStatus(DamageStatus status);
+    Page<DamageReport> findByAssetId(Long assetId, Pageable pageable);
+    Page<DamageReport> findByStatus(DamageStatus status, Pageable pageable);
 }

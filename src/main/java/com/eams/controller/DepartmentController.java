@@ -1,70 +1,50 @@
 package com.eams.controller;
 
-import com.eams.dto.request.DepartmentRequest;
+import com.eams.constant.AppConstants;
+import com.eams.dto.request.CreateDepartmentRequest;
+import com.eams.dto.response.ApiResponse;
 import com.eams.dto.response.DepartmentResponse;
 import com.eams.service.DepartmentService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/departments")
+@RequestMapping("/api/v1/departments")
+@RequiredArgsConstructor
 public class DepartmentController {
 
     private final DepartmentService departmentService;
 
-    public DepartmentController(DepartmentService departmentService) {
-        this.departmentService = departmentService;
-    }
-
     @PostMapping
-    public ResponseEntity<DepartmentResponse> createDepartment(
-            @Valid @RequestBody DepartmentRequest request) {
-
-        DepartmentResponse response =
-                departmentService.createDepartment(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<DepartmentResponse>> getAllDepartments() {
-
-        return ResponseEntity.ok(
-                departmentService.getAllDepartments()
-        );
+    public ResponseEntity<ApiResponse<DepartmentResponse>> createDepartment(@Valid @RequestBody CreateDepartmentRequest request) {
+        DepartmentResponse response = departmentService.createDepartment(request);
+        return new ResponseEntity<>(ApiResponse.success("Department created successfully", response), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DepartmentResponse> getDepartmentById(
-            @PathVariable Long id) {
-
-        return ResponseEntity.ok(
-                departmentService.getDepartmentById(id)
-        );
+    public ResponseEntity<ApiResponse<DepartmentResponse>> getDepartmentById(@PathVariable Long id) {
+        DepartmentResponse response = departmentService.getDepartmentById(id);
+        return ResponseEntity.ok(ApiResponse.success("Department retrieved successfully", response));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<DepartmentResponse> updateDepartment(
-            @PathVariable Long id,
-            @Valid @RequestBody DepartmentRequest request) {
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<DepartmentResponse>>> getAllDepartments(
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir) {
 
-        return ResponseEntity.ok(
-                departmentService.updateDepartment(id, request)
-        );
-    }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDepartment(
-            @PathVariable Long id) {
-
-        departmentService.deleteDepartment(id);
-
-        return ResponseEntity.noContent().build();
+        Page<DepartmentResponse> departments = departmentService.getAllDepartments(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Departments retrieved successfully", departments));
     }
 }

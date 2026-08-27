@@ -1,17 +1,14 @@
 package com.eams.dto.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 public class DepartmentResponse {
-
     private Long id;
     private String name;
+    private String code;
     private String description;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

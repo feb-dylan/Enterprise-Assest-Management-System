@@ -1,82 +1,50 @@
 package com.eams.controller;
 
-import com.eams.dto.request.EmployeeRequest;
+import com.eams.constant.AppConstants;
+import com.eams.dto.request.CreateEmployeeRequest;
+import com.eams.dto.response.ApiResponse;
 import com.eams.dto.response.EmployeeResponse;
 import com.eams.service.EmployeeService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/employees")
+@RequestMapping("/api/v1/employees")
+@RequiredArgsConstructor
 public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    public EmployeeController(EmployeeService employeeService) {
-        this.employeeService = employeeService;
-    }
-
     @PostMapping
-    public ResponseEntity<EmployeeResponse> createEmployee(
-            @Valid @RequestBody EmployeeRequest request) {
-
-        EmployeeResponse response =
-                employeeService.createEmployee(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<EmployeeResponse>> getAllEmployees(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        return ResponseEntity.ok(
-                employeeService.getAllEmployees(page, size)
-        );
+    public ResponseEntity<ApiResponse<EmployeeResponse>> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
+        EmployeeResponse response = employeeService.createEmployee(request);
+        return new ResponseEntity<>(ApiResponse.success("Employee created successfully", response), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeResponse> getEmployeeById(
-            @PathVariable Long id) {
-
-        return ResponseEntity.ok(
-                employeeService.getEmployeeById(id)
-        );
+    public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeById(@PathVariable Long id) {
+        EmployeeResponse response = employeeService.getEmployeeById(id);
+        return ResponseEntity.ok(ApiResponse.success("Employee retrieved successfully", response));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<EmployeeResponse> updateEmployee(
-            @PathVariable Long id,
-            @Valid @RequestBody EmployeeRequest request) {
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<EmployeeResponse>>> getAllEmployees(
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
+            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir) {
 
-        return ResponseEntity.ok(
-                employeeService.updateEmployee(id, request)
-        );
-    }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEmployee(
-            @PathVariable Long id) {
-
-        employeeService.deleteEmployee(id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<Page<EmployeeResponse>> searchEmployees(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        return ResponseEntity.ok(
-                employeeService.searchEmployees(keyword, page, size)
-        );
+        Page<EmployeeResponse> employees = employeeService.getAllEmployees(pageable);
+        return ResponseEntity.ok(ApiResponse.success("Employees retrieved successfully", employees));
     }
 }

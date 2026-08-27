@@ -1,19 +1,12 @@
 package com.eams.service;
 
-import com.eams.dto.request.DepartmentRequest;
+import com.eams.dto.request.CreateDepartmentRequest;
 import com.eams.dto.response.DepartmentResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface DepartmentService {
-
-    DepartmentResponse createDepartment(DepartmentRequest request);
-
-    List<DepartmentResponse> getAllDepartments();
-
+    DepartmentResponse createDepartment(CreateDepartmentRequest request);
     DepartmentResponse getDepartmentById(Long id);
-
-    DepartmentResponse updateDepartment(Long id, DepartmentRequest request);
-
-    void deleteDepartment(Long id);
+    Page<DepartmentResponse> getAllDepartments(Pageable pageable);
 }

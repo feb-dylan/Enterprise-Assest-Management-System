@@ -1,15 +1,13 @@
 package com.eams.repository;
 
 import com.eams.entity.EmailVerificationToken;
-import com.eams.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-public interface EmailVerificationTokenRepository
-        extends JpaRepository<EmailVerificationToken, Long> {
-
+@Repository
+public interface EmailVerificationTokenRepository extends JpaRepository<EmailVerificationToken, Long> {
     Optional<EmailVerificationToken> findByToken(String token);
-
-    void deleteByUser(User user);
+    void deleteByUserId(Long userId);
 }

@@ -1,7 +1,6 @@
 package com.eams.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,54 +13,59 @@ import java.time.LocalDateTime;
 @Table(name = "maintenance")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Maintenance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "work_order_number", nullable = false, unique = true, length = 100)
+    private String workOrderNumber;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
 
-    @Column(length = 100)
-    private String technician;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "damage_report_id")
+    private DamageReport damageReport;
 
-    @Column(nullable = false, length = 2000)
-    private String description;
+    @Column(name = "technician_name", length = 150)
+    private String technicianName;
+
+    @Column(name = "maintenance_type", length = 50)
+    private String maintenanceType;
+
+    @Column(name = "cost", precision = 10, scale = 2)
+    private BigDecimal cost;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date")
-    private LocalDate endDate;
-
-    @Column(name = "repair_cost", precision = 15, scale = 2)
-    private BigDecimal repairCost;
+    @Column(name = "completion_date")
+    private LocalDate completionDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private MaintenanceStatus status = MaintenanceStatus.SCHEDULED;
+    @Column(name = "status", nullable = false, length = 30)
+    private MaintenanceStatus status;
 
-    @Column(length = 1000)
-    private String notes;
+    @Column(name = "remarks", columnDefinition = "TEXT")
+    private String remarks;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
+        this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

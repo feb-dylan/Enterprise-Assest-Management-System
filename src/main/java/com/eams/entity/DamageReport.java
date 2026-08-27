@@ -1,68 +1,61 @@
 package com.eams.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "damage_reports")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class DamageReport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "report_number", nullable = false, unique = true, length = 100)
+    private String reportNumber;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "employee_id", nullable = false)
-    private Employee employee;
+    @JoinColumn(name = "reported_by_employee_id", nullable = false)
+    private Employee reportedByEmployee;
 
-    @Column(nullable = false, length = 2000)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "reported_date", nullable = false)
-    private LocalDateTime reportedDate;
-
-    @Column(name = "evidence_url", length = 500)
-    private String evidenceUrl;
+    @Column(name = "incident_date", nullable = false)
+    private LocalDate incidentDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private DamageStatus status = DamageStatus.REPORTED;
+    @Column(name = "status", nullable = false, length = 30)
+    private DamageStatus status;
 
-    @Column(name = "resolution_note", length = 1000)
-    private String resolutionNote;
+    @Column(name = "image_url")
+    private String imageUrl;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-
-        if (reportedDate == null) {
-            reportedDate = now;
-        }
-
-        createdAt = now;
-        updatedAt = now;
+        this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }
