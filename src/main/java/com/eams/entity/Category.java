@@ -1,12 +1,11 @@
 package com.eams.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -21,6 +20,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Category {
 
     @Id
@@ -38,6 +39,17 @@ public class Category {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    // Optional: Bidirectional mapping to Asset entity
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = false)
+    @Builder.Default
+    private List<Asset> assets = new ArrayList<>();
+
+    // Custom constructor for quick creation
+    public Category(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 
     @PrePersist
     protected void onCreate() {
