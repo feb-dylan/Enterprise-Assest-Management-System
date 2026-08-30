@@ -1,5 +1,6 @@
 package com.eams.controller;
 
+import org.springframework.web.bind.annotation.RestController;
 import com.eams.dto.request.AssetRequestCreateRequest;
 import com.eams.dto.request.AssetRequestRejectRequest;
 import com.eams.dto.response.AssetRequestResponse;
