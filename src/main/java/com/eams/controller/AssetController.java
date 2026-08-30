@@ -1,56 +1,67 @@
 package com.eams.controller;
 
-import com.eams.constant.AppConstants;
-import com.eams.dto.request.CreateAssetRequest;
-import com.eams.dto.response.ApiResponse;
-import com.eams.dto.response.AssetResponse;
+import com.eams.dto.request.AssetRequestDto;
+import com.eams.dto.response.AssetResponseDto;
+import com.eams.entity.AssetStatus;
 import com.eams.service.AssetService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/assets")
-@RequiredArgsConstructor
+@RequestMapping("/api/assets")
 public class AssetController {
 
     private final AssetService assetService;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<AssetResponse>> createAsset(@Valid @RequestBody CreateAssetRequest request) {
-        AssetResponse response = assetService.createAsset(request);
-        return new ResponseEntity<>(ApiResponse.success("Asset created successfully", response), HttpStatus.CREATED);
+    public AssetController(AssetService assetService) {
+        this.assetService = assetService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<AssetResponse>> getAssetById(@PathVariable Long id) {
-        AssetResponse response = assetService.getAssetById(id);
-        return ResponseEntity.ok(ApiResponse.success("Asset retrieved successfully", response));
+    @PostMapping
+    public ResponseEntity<AssetResponseDto> createAsset(@Valid @RequestBody AssetRequestDto requestDto) {
+        return new ResponseEntity<>(assetService.createAsset(requestDto), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<AssetResponse>>> getAllAssets(
-            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
-            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size,
-            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
-            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir) {
+    public ResponseEntity<List<AssetResponseDto>> getAllAssets() {
+        return ResponseEntity.ok(assetService.getAllAssets());
+    }
 
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+    @GetMapping("/{id}")
+    public ResponseEntity<AssetResponseDto> getAssetById(@PathVariable Long id) {
+        return ResponseEntity.ok(assetService.getAssetById(id));
+    }
 
-        Page<AssetResponse> assets = assetService.getAllAssets(pageable);
-        return ResponseEntity.ok(ApiResponse.success("Assets retrieved successfully", assets));
+    @PutMapping("/{id}")
+    public ResponseEntity<AssetResponseDto> updateAsset(
+            @PathVariable Long id,
+            @Valid @RequestBody AssetRequestDto requestDto) {
+        return ResponseEntity.ok(assetService.updateAsset(id, requestDto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteAsset(@PathVariable Long id) {
+    public ResponseEntity<String> deleteAsset(@PathVariable Long id) {
         assetService.deleteAsset(id);
-        return ResponseEntity.ok(ApiResponse.success("Asset deleted successfully", null));
+        return ResponseEntity.ok("Asset deleted successfully");
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<AssetResponseDto>> searchAssets(@RequestParam String query) {
+        return ResponseEntity.ok(assetService.searchAssets(query));
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<AssetResponseDto>> getAssetsByCategory(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(assetService.getAssetsByCategory(categoryId));
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<AssetResponseDto>> getAssetsByStatus(@PathVariable AssetStatus status) {
+        return ResponseEntity.ok(assetService.getAssetsByStatus(status));
     }
 }

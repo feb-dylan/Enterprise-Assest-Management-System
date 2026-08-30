@@ -1,50 +1,60 @@
 package com.eams.controller;
 
-import com.eams.constant.AppConstants;
-import com.eams.dto.request.CreateCategoryRequest;
-import com.eams.dto.response.ApiResponse;
-import com.eams.dto.response.CategoryResponse;
+import com.eams.dto.request.CategoryRequestDto;
+import com.eams.dto.response.CategoryResponseDto;
 import com.eams.service.CategoryService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/v1/categories")
-@RequiredArgsConstructor
+@RequestMapping("/api/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
+    // Constructor Injection
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
+
+    // 1. Create Category: POST /api/categories
     @PostMapping
-    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
-        CategoryResponse response = categoryService.createCategory(request);
-        return new ResponseEntity<>(ApiResponse.success("Category created successfully", response), HttpStatus.CREATED);
+    public ResponseEntity<CategoryResponseDto> createCategory(@Valid @RequestBody CategoryRequestDto requestDto) {
+        CategoryResponseDto createdCategory = categoryService.createCategory(requestDto);
+        return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(@PathVariable Long id) {
-        CategoryResponse response = categoryService.getCategoryById(id);
-        return ResponseEntity.ok(ApiResponse.success("Category retrieved successfully", response));
-    }
-
+    // 2. Get All Categories: GET /api/categories
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<CategoryResponse>>> getAllCategories(
-            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
-            @RequestParam(defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size,
-            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
-            @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir) {
+    public ResponseEntity<List<CategoryResponseDto>> getAllCategories() {
+        List<CategoryResponseDto> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
+    }
 
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+    // 3. Get Category by ID: GET /api/categories/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponseDto> getCategoryById(@PathVariable Long id) {
+        CategoryResponseDto category = categoryService.getCategoryById(id);
+        return ResponseEntity.ok(category);
+    }
 
-        Page<CategoryResponse> categories = categoryService.getAllCategories(pageable);
-        return ResponseEntity.ok(ApiResponse.success("Categories retrieved successfully", categories));
+    // 4. Update Category: PUT /api/categories/{id}
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponseDto> updateCategory(
+            @PathVariable Long id,
+            @Valid @RequestBody CategoryRequestDto requestDto) {
+        CategoryResponseDto updatedCategory = categoryService.updateCategory(id, requestDto);
+        return ResponseEntity.ok(updatedCategory);
+    }
+
+    // 5. Delete Category: DELETE /api/categories/{id}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok("Category deleted successfully");
     }
 }

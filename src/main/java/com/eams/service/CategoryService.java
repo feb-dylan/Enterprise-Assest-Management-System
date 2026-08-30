@@ -1,12 +1,14 @@
 package com.eams.service;
 
-import com.eams.dto.request.CreateCategoryRequest;
-import com.eams.dto.response.CategoryResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.eams.dto.request.CategoryRequestDto;
+import com.eams.dto.response.CategoryResponseDto;
+
+import java.util.List;
 
 public interface CategoryService {
-    CategoryResponse createCategory(CreateCategoryRequest request);
-    CategoryResponse getCategoryById(Long id);
-    Page<CategoryResponse> getAllCategories(Pageable pageable);
+    CategoryResponseDto createCategory(CategoryRequestDto requestDto);
+    List<CategoryResponseDto> getAllCategories();
+    CategoryResponseDto getCategoryById(Long id);
+    CategoryResponseDto updateCategory(Long id, CategoryRequestDto requestDto);
+    void deleteCategory(Long id);
 }

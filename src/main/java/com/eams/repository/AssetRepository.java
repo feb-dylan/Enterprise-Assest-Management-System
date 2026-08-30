@@ -11,9 +11,9 @@ import java.util.Optional;
 
 @Repository
 public interface AssetRepository extends JpaRepository<Asset, Long> {
-    long countByStatus(AssetStatus status);
-    Optional<Asset> findByAssetTag(String assetTag);
-    boolean existsByAssetTag(String assetTag);
-    Page<Asset> findByStatus(AssetStatus status, Pageable pageable);
-    Page<Asset> findByCategoryId(Long categoryId, Pageable pageable);
+    List<Asset> findByCategoryId(Long categoryId);
+    List<Asset> findByStatus(AssetStatus status);
+    Optional<Asset> findByAssetCode(String assetCode);
+    boolean existsByAssetCode(String assetCode);
+    boolean existsBySerialNumber(String serialNumber);
 }
