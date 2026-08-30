@@ -1,4 +1,12 @@
 package com.eams.service;
 
-public class AuthService {
+import com.eams.dto.request.LoginRequest;
+import com.eams.dto.request.RegisterRequest;
+import com.eams.dto.response.LoginResponse;
+
+public interface AuthService {
+
+    void register(RegisterRequest request);
+
+    LoginResponse login(LoginRequest request);
 }

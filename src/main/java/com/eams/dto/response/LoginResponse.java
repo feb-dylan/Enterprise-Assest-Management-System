@@ -1,10 +1,8 @@
-//package com.eams.dto.response;
-//@Getter
-//@Setter
-//@AllArgsConstructor
-//public class LoginResponse {
-//
-//    private String token;
-//    private String username;
-//    private String role;
-//}
+package com.eams.dto.response;
+
+public record LoginResponse(
+        String token,
+        String email,
+        String role
+) {
+}
