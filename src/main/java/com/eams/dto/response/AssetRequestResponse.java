@@ -1,5 +1,6 @@
 package com.eams.dto.response;
 
+import com.eams.entity.AssignmentStatus;
 import com.eams.entity.RequestStatus;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,8 @@ public class AssetRequestResponse {
     private String reason;
     private RequestStatus status;
 
+    private AssignmentStatus assignmentStatus;
+
     private Long approvedBy;
     private LocalDateTime approvedAt;
     private String rejectionReason;
@@ -24,6 +27,7 @@ public class AssetRequestResponse {
             LocalDateTime requestDate,
             String reason,
             RequestStatus status,
+            AssignmentStatus assignmentStatus,
             Long approvedBy,
             LocalDateTime approvedAt,
             String rejectionReason
@@ -34,6 +38,7 @@ public class AssetRequestResponse {
         this.requestDate = requestDate;
         this.reason = reason;
         this.status = status;
+        this.assignmentStatus = assignmentStatus;
         this.approvedBy = approvedBy;
         this.approvedAt = approvedAt;
         this.rejectionReason = rejectionReason;
@@ -63,6 +68,10 @@ public class AssetRequestResponse {
         return status;
     }
 
+    public AssignmentStatus getAssignmentStatus() {
+        return assignmentStatus;
+    }
+
     public Long getApprovedBy() {
         return approvedBy;
     }
@@ -75,60 +84,3 @@ public class AssetRequestResponse {
         return rejectionReason;
     }
 }
-
-
-/*package com.eams.dto.response;
-
-import com.eams.entity.RequestStatus;
-
-import java.time.LocalDateTime;
-
-public class AssetRequestResponse {
-
-    private Long id;
-    private Long employeeId;
-    private Long assetId;
-    private LocalDateTime requestDate;
-    private String reason;
-    private RequestStatus status;
-
-    public AssetRequestResponse(
-            Long id,
-            Long employeeId,
-            Long assetId,
-            LocalDateTime requestDate,
-            String reason,
-            RequestStatus status
-    ) {
-        this.id = id;
-        this.employeeId = employeeId;
-        this.assetId = assetId;
-        this.requestDate = requestDate;
-        this.reason = reason;
-        this.status = status;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Long getEmployeeId() {
-        return employeeId;
-    }
-
-    public Long getAssetId() {
-        return assetId;
-    }
-
-    public LocalDateTime getRequestDate() {
-        return requestDate;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public RequestStatus getStatus() {
-        return status;
-    }
-} */

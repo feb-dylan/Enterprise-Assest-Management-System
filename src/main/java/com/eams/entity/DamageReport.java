@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "damage_reports")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class DamageReport {
 
     @Id

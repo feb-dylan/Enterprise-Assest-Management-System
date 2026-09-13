@@ -95,4 +95,25 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole().getName()
         );
     }
+    @Override
+    public void changePassword(
+            String email,
+            String currentPassword,
+            String newPassword
+    ) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new IllegalArgumentException(
+                    "New password must be different from current password");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

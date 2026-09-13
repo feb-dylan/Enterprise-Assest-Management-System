@@ -29,7 +29,11 @@ public class Employee {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true)
+    @JoinColumn(
+            name = "user_id",
+            unique = true,
+            nullable = true
+    )
     private User user;
 
     @Column(name = "employee_code", nullable = false, length = 50)
@@ -68,12 +72,15 @@ public class Employee {
             String employeeCode,
             String firstName,
             String lastName,
-            Department department) {
-
+            Department department
+    ) {
         this.employeeCode = employeeCode;
         this.firstName = firstName;
         this.lastName = lastName;
         this.department = department;
+    }
+    public String getEmail() {
+        return user != null ? user.getEmail() : null;
     }
 
     @PrePersist

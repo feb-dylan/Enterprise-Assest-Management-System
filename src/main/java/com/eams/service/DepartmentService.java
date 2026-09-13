@@ -2,18 +2,35 @@ package com.eams.service;
 
 import com.eams.dto.request.DepartmentRequest;
 import com.eams.dto.response.DepartmentResponse;
+import com.eams.dto.response.EmployeeResponse;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface DepartmentService {
 
-    DepartmentResponse createDepartment(DepartmentRequest request);
+    DepartmentResponse createDepartment(
+            DepartmentRequest request
+    );
 
     List<DepartmentResponse> getAllDepartments();
 
-    DepartmentResponse getDepartmentById(Long id);
+    DepartmentResponse getDepartmentById(
+            Long id
+    );
 
-    DepartmentResponse updateDepartment(Long id, DepartmentRequest request);
+    Page<EmployeeResponse> getEmployeesByDepartment(
+            Long departmentId,
+            int page,
+            int size
+    );
 
-    void deleteDepartment(Long id);
+    DepartmentResponse updateDepartment(
+            Long id,
+            DepartmentRequest request
+    );
+
+    void deleteDepartment(
+            Long id
+    );
 }

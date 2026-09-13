@@ -1,26 +1,25 @@
 package com.eams.controller;
 
-import org.springframework.web.bind.annotation.RestController;
 import com.eams.dto.request.AssetRequestCreateRequest;
 import com.eams.dto.request.AssetRequestRejectRequest;
+import com.eams.dto.request.AssetReturnRequest;
+
+import com.eams.dto.response.AssetAssignmentResponse;
 import com.eams.dto.response.AssetRequestResponse;
+
 import com.eams.service.AssetRequestService;
 
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
-import com.eams.dto.response.AssetAssignmentResponse;
-
-import com.eams.dto.request.AssetReturnRequest;
-
 @RestController
-@RequestMapping("/api/asset-requests")
+@RequestMapping("/api/requests")
 public class AssetRequestController {
 
     private final AssetRequestService assetRequestService;
@@ -31,7 +30,9 @@ public class AssetRequestController {
         this.assetRequestService = assetRequestService;
     }
 
-    // FUNCTION 1 — Employee Creates Request
+    // =========================================================
+    // 1. EMPLOYEE CREATES REQUEST
+    // =========================================================
 
     @PostMapping
     public ResponseEntity<AssetRequestResponse> createRequest(
@@ -46,7 +47,9 @@ public class AssetRequestController {
                 .body(response);
     }
 
-    // FUNCTION 2 — Employee Views My Requests
+    // =========================================================
+    // 2. EMPLOYEE VIEWS OWN REQUESTS
+    // =========================================================
 
     @GetMapping("/my/{employeeId}")
     public ResponseEntity<List<AssetRequestResponse>> getMyRequests(
@@ -59,10 +62,53 @@ public class AssetRequestController {
         return ResponseEntity.ok(responses);
     }
 
-    // FUNCTION 3 — Manager Views Pending Requests
+    // =========================================================
+    // 3. EMPLOYEE VIEWS CURRENTLY ASSIGNED ASSETS
+    // =========================================================
+
+    @GetMapping("/assignments/my/{employeeId}")
+    public ResponseEntity<List<AssetAssignmentResponse>>
+    getMyAssignedAssets(
+            @PathVariable Long employeeId
+    ) {
+
+        List<AssetAssignmentResponse> responses =
+                assetRequestService.getMyAssignedAssets(employeeId);
+
+        return ResponseEntity.ok(responses);
+    }
+
+    // =========================================================
+    // 4. EMPLOYEE REQUESTS ASSET RETURN
+    // =========================================================
+
+    @PutMapping(
+            "/assignments/{assignmentId}/return-request/{employeeId}"
+    )
+    public ResponseEntity<AssetAssignmentResponse>
+    requestAssetReturn(
+            @PathVariable Long assignmentId,
+            @PathVariable Long employeeId,
+            @Valid @RequestBody AssetReturnRequest request
+    ) {
+
+        AssetAssignmentResponse response =
+                assetRequestService.requestAssetReturn(
+                        assignmentId,
+                        employeeId,
+                        request
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // =========================================================
+    // 5. MANAGER VIEWS PENDING REQUESTS
+    // =========================================================
 
     @GetMapping("/pending")
-    public ResponseEntity<List<AssetRequestResponse>> getPendingRequests() {
+    public ResponseEntity<List<AssetRequestResponse>>
+    getPendingRequests() {
 
         List<AssetRequestResponse> responses =
                 assetRequestService.getPendingRequests();
@@ -70,7 +116,9 @@ public class AssetRequestController {
         return ResponseEntity.ok(responses);
     }
 
-    // FUNCTION 4 — Manager Approves Request
+    // =========================================================
+    // 6. MANAGER APPROVES REQUEST
+    // =========================================================
 
     @PutMapping("/{requestId}/approve/{managerId}")
     public ResponseEntity<AssetRequestResponse> approveRequest(
@@ -87,7 +135,9 @@ public class AssetRequestController {
         return ResponseEntity.ok(response);
     }
 
-    // FUNCTION 5 — Manager Rejects Request
+    // =========================================================
+    // 7. MANAGER REJECTS REQUEST
+    // =========================================================
 
     @PutMapping("/{requestId}/reject/{managerId}")
     public ResponseEntity<AssetRequestResponse> rejectRequest(
@@ -106,10 +156,13 @@ public class AssetRequestController {
         return ResponseEntity.ok(response);
     }
 
-// FUNCTION 6 — Admin Views Approved Requests
+    // =========================================================
+    // 8. ADMIN VIEWS APPROVED REQUESTS
+    // =========================================================
 
     @GetMapping("/approved")
-    public ResponseEntity<List<AssetRequestResponse>> getApprovedRequests() {
+    public ResponseEntity<List<AssetRequestResponse>>
+    getApprovedRequests() {
 
         List<AssetRequestResponse> responses =
                 assetRequestService.getApprovedRequests();
@@ -117,7 +170,9 @@ public class AssetRequestController {
         return ResponseEntity.ok(responses);
     }
 
-// FUNCTION 7 — Admin Assign Asset
+    // =========================================================
+    // 9. ADMIN ASSIGNS ASSET
+    // =========================================================
 
     @PutMapping("/{requestId}/assign/{adminId}")
     public ResponseEntity<AssetAssignmentResponse> assignAsset(
@@ -133,9 +188,14 @@ public class AssetRequestController {
 
         return ResponseEntity.ok(response);
     }
-// FUNCTION 8 — Admin Returns Asset
 
-    @PutMapping("/assignments/{assignmentId}/return/{adminId}")
+    // =========================================================
+    // 10. ADMIN RECEIVES RETURNED ASSET
+    // =========================================================
+
+    @PutMapping(
+            "/assignments/{assignmentId}/return/{adminId}"
+    )
     public ResponseEntity<AssetAssignmentResponse> returnAsset(
             @PathVariable Long assignmentId,
             @PathVariable Long adminId,
@@ -151,10 +211,14 @@ public class AssetRequestController {
 
         return ResponseEntity.ok(response);
     }
-// FUNCTION 9 — Admin Views Assignment History
+
+    // =========================================================
+    // 11. ADMIN VIEWS ASSIGNMENT HISTORY
+    // =========================================================
 
     @GetMapping("/assignments/history")
-    public ResponseEntity<List<AssetAssignmentResponse>> getAssignmentHistory() {
+    public ResponseEntity<List<AssetAssignmentResponse>>
+    getAssignmentHistory() {
 
         List<AssetAssignmentResponse> responses =
                 assetRequestService.getAssignmentHistory();
@@ -162,4 +226,36 @@ public class AssetRequestController {
         return ResponseEntity.ok(responses);
     }
 
+    // =========================================================
+    // 12. GET ONE ASSIGNMENT BY ID
+    // =========================================================
+
+    @GetMapping("/assignments/{assignmentId}")
+    public ResponseEntity<AssetAssignmentResponse>
+    getAssignmentById(
+            @PathVariable Long assignmentId
+    ) {
+
+        AssetAssignmentResponse response =
+                assetRequestService.getAssignmentById(
+                        assignmentId
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // =========================================================
+    // 13. GET ONE REQUEST BY ID
+    // =========================================================
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AssetRequestResponse> getRequestById(
+            @PathVariable Long id
+    ) {
+
+        AssetRequestResponse response =
+                assetRequestService.getRequestById(id);
+
+        return ResponseEntity.ok(response);
+    }
 }

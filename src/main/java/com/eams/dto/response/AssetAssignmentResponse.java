@@ -13,6 +13,7 @@ public class AssetAssignmentResponse {
     private LocalDate returnedDate;
     private AssignmentStatus status;
     private Long assignedBy;
+    private String returnNote;
 
     public AssetAssignmentResponse(
             Long id,
@@ -21,7 +22,8 @@ public class AssetAssignmentResponse {
             LocalDate assignedDate,
             LocalDate returnedDate,
             AssignmentStatus status,
-            Long assignedBy
+            Long assignedBy,
+            String returnNote
     ) {
         this.id = id;
         this.assetId = assetId;
@@ -30,6 +32,7 @@ public class AssetAssignmentResponse {
         this.returnedDate = returnedDate;
         this.status = status;
         this.assignedBy = assignedBy;
+        this.returnNote = returnNote;
     }
 
     public Long getId() {
@@ -59,5 +62,8 @@ public class AssetAssignmentResponse {
     public Long getAssignedBy() {
         return assignedBy;
     }
-}
 
+    public String getReturnNote() {
+        return returnNote;
+    }
+}

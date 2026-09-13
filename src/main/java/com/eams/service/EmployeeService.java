@@ -1,5 +1,6 @@
 package com.eams.service;
 
+import com.eams.dto.request.EmployeeProfileRequest;
 import com.eams.dto.request.EmployeeRequest;
 import com.eams.dto.response.EmployeeResponse;
 import org.springframework.data.domain.Page;
@@ -7,6 +8,10 @@ import org.springframework.data.domain.Page;
 public interface EmployeeService {
 
     EmployeeResponse createEmployee(EmployeeRequest request);
+
+    EmployeeResponse updateCurrentEmployee(EmployeeProfileRequest request);
+
+    EmployeeResponse createCurrentEmployee(EmployeeRequest request);
 
     Page<EmployeeResponse> getAllEmployees(int page, int size);
 
@@ -21,4 +26,7 @@ public interface EmployeeService {
             int page,
             int size
     );
+
+    // NEW
+    EmployeeResponse getCurrentEmployee();
 }

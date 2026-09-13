@@ -2,8 +2,10 @@ package com.eams.controller;
 
 import com.eams.dto.request.DepartmentRequest;
 import com.eams.dto.response.DepartmentResponse;
+import com.eams.dto.response.EmployeeResponse;
 import com.eams.service.DepartmentService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +18,9 @@ public class DepartmentController {
 
     private final DepartmentService departmentService;
 
-    public DepartmentController(DepartmentService departmentService) {
+    public DepartmentController(
+            DepartmentService departmentService) {
+
         this.departmentService = departmentService;
     }
 
@@ -33,7 +37,8 @@ public class DepartmentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<DepartmentResponse>> getAllDepartments() {
+    public ResponseEntity<List<DepartmentResponse>>
+    getAllDepartments() {
 
         return ResponseEntity.ok(
                 departmentService.getAllDepartments()
@@ -41,7 +46,8 @@ public class DepartmentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DepartmentResponse> getDepartmentById(
+    public ResponseEntity<DepartmentResponse>
+    getDepartmentById(
             @PathVariable Long id) {
 
         return ResponseEntity.ok(
@@ -49,8 +55,25 @@ public class DepartmentController {
         );
     }
 
+    @GetMapping("/{id}/employees")
+    public ResponseEntity<Page<EmployeeResponse>>
+    getEmployeesByDepartment(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(
+                departmentService.getEmployeesByDepartment(
+                        id,
+                        page,
+                        size
+                )
+        );
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<DepartmentResponse> updateDepartment(
+    public ResponseEntity<DepartmentResponse>
+    updateDepartment(
             @PathVariable Long id,
             @Valid @RequestBody DepartmentRequest request) {
 
