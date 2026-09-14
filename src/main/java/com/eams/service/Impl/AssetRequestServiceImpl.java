@@ -628,14 +628,25 @@ public class AssetRequestServiceImpl implements AssetRequestService {
 
         return new AssetAssignmentResponse(
                 assignment.getId(),
+
                 assignment.getAsset().getId(),
+
+                assignment.getAsset().getAssetCode(),
+
+                assignment.getAsset().getName(),
+
                 assignment.getEmployee().getId(),
+
                 assignment.getAssignedDate(),
+
                 assignment.getReturnedDate(),
+
                 assignment.getStatus(),
+
                 assignment.getAssignedBy() != null
                         ? assignment.getAssignedBy().getId()
                         : null,
+
                 assignment.getReturnNote()
         );
     }

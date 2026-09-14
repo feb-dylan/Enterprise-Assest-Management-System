@@ -2,14 +2,18 @@ package com.eams.service.impl;
 
 import com.eams.dto.request.MaintenanceCreateRequest;
 import com.eams.dto.request.MaintenanceUpdateRequest;
+import com.eams.dto.response.MaintenanceAssetResponse;
 import com.eams.dto.response.MaintenanceResponse;
 
 import com.eams.entity.Asset;
 import com.eams.entity.AssetStatus;
+import com.eams.entity.DamageReport;
+import com.eams.entity.DamageStatus;
 import com.eams.entity.Maintenance;
 import com.eams.entity.MaintenanceStatus;
 
 import com.eams.repository.AssetRepository;
+import com.eams.repository.DamageReportRepository;
 import com.eams.repository.MaintenanceRepository;
 
 import com.eams.service.MaintenanceService;
@@ -28,10 +32,11 @@ import java.util.List;
 public class MaintenanceServiceImpl
         implements MaintenanceService {
 
-
     private final MaintenanceRepository maintenanceRepository;
 
     private final AssetRepository assetRepository;
+
+    private final DamageReportRepository damageReportRepository;
 
 
     // =========================================================
@@ -53,6 +58,10 @@ public class MaintenanceServiceImpl
                 );
 
 
+        // =====================================================
+        // RETIRED ASSET CHECK
+        // =====================================================
+
         if (asset.getStatus() == AssetStatus.RETIRED) {
 
             throw new RuntimeException(
@@ -60,6 +69,33 @@ public class MaintenanceServiceImpl
             );
         }
 
+
+        // =====================================================
+        // DAMAGE REPORT CHECK
+        //
+        // Maintenance can only be created when the asset
+        // has a damage report with status REPAIRING.
+        // =====================================================
+
+        List<DamageReport> repairingReports =
+                damageReportRepository
+                        .findByAssetIdAndStatus(
+                                asset.getId(),
+                                DamageStatus.REPAIRING
+                        );
+
+
+        if (repairingReports.isEmpty()) {
+
+            throw new RuntimeException(
+                    "Maintenance can only be created for an asset with a REPAIRING damage report"
+            );
+        }
+
+
+        // =====================================================
+        // CREATE MAINTENANCE
+        // =====================================================
 
         Maintenance maintenance =
                 new Maintenance();
@@ -101,7 +137,10 @@ public class MaintenanceServiceImpl
                 );
 
 
-        // Asset goes into maintenance
+        // =====================================================
+        // ASSET GOES INTO MAINTENANCE
+        // =====================================================
+
         asset.setStatus(
                 AssetStatus.MAINTENANCE
         );
@@ -110,6 +149,48 @@ public class MaintenanceServiceImpl
 
 
         return mapToResponse(saved);
+    }
+
+
+    // =========================================================
+    // GET ASSETS AVAILABLE FOR MAINTENANCE
+    //
+    // Only assets with a REPAIRING damage report.
+    // =========================================================
+
+    @Override
+    @Transactional
+    public List<MaintenanceAssetResponse>
+    getRepairingAssets() {
+
+        return damageReportRepository
+                .findByStatus(DamageStatus.REPAIRING)
+                .stream()
+
+                // Get the asset from each damage report
+                .map(DamageReport::getAsset)
+
+                // Remove null assets just in case
+                .filter(asset -> asset != null)
+
+                // Do not show retired assets
+                .filter(asset ->
+                        asset.getStatus() != AssetStatus.RETIRED
+                )
+
+                // Avoid duplicate assets if an asset has
+                // multiple REPAIRING damage reports
+                .distinct()
+
+                .map(asset ->
+                        MaintenanceAssetResponse.builder()
+                                .id(asset.getId())
+                                .assetCode(asset.getAssetCode())
+                                .name(asset.getName())
+                                .build()
+                )
+
+                .toList();
     }
 
 

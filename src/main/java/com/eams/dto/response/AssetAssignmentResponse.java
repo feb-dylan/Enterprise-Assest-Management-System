@@ -7,17 +7,30 @@ import java.time.LocalDate;
 public class AssetAssignmentResponse {
 
     private Long id;
+
     private Long assetId;
+
+    private String assetCode;
+
+    private String assetName;
+
     private Long employeeId;
+
     private LocalDate assignedDate;
+
     private LocalDate returnedDate;
+
     private AssignmentStatus status;
+
     private Long assignedBy;
+
     private String returnNote;
 
     public AssetAssignmentResponse(
             Long id,
             Long assetId,
+            String assetCode,
+            String assetName,
             Long employeeId,
             LocalDate assignedDate,
             LocalDate returnedDate,
@@ -27,6 +40,8 @@ public class AssetAssignmentResponse {
     ) {
         this.id = id;
         this.assetId = assetId;
+        this.assetCode = assetCode;
+        this.assetName = assetName;
         this.employeeId = employeeId;
         this.assignedDate = assignedDate;
         this.returnedDate = returnedDate;
@@ -41,6 +56,14 @@ public class AssetAssignmentResponse {
 
     public Long getAssetId() {
         return assetId;
+    }
+
+    public String getAssetCode() {
+        return assetCode;
+    }
+
+    public String getAssetName() {
+        return assetName;
     }
 
     public Long getEmployeeId() {

@@ -14,4 +14,9 @@ public interface DamageReportRepository
     List<DamageReport> findByAssetId(Long assetId);
 
     List<DamageReport> findByStatus(DamageStatus status);
+
+    List<DamageReport> findByAssetIdAndStatus(
+            Long assetId,
+            DamageStatus status
+    );
 }

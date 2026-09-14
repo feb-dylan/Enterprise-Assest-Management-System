@@ -2,6 +2,7 @@ package com.eams.service;
 
 import com.eams.dto.request.MaintenanceCreateRequest;
 import com.eams.dto.request.MaintenanceUpdateRequest;
+import com.eams.dto.response.MaintenanceAssetResponse;
 import com.eams.dto.response.MaintenanceResponse;
 
 import java.util.List;
@@ -26,4 +27,6 @@ public interface MaintenanceService {
             Long id,
             MaintenanceUpdateRequest request
     );
+
+    List<MaintenanceAssetResponse> getRepairingAssets();
 }

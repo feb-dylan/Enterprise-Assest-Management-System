@@ -2,6 +2,7 @@ package com.eams.controller;
 
 import com.eams.dto.request.MaintenanceCreateRequest;
 import com.eams.dto.request.MaintenanceUpdateRequest;
+import com.eams.dto.response.MaintenanceAssetResponse;
 import com.eams.dto.response.MaintenanceResponse;
 
 import com.eams.service.MaintenanceService;
@@ -23,6 +24,22 @@ import java.util.List;
 public class MaintenanceController {
 
     private final MaintenanceService maintenanceService;
+
+
+    // =========================================================
+    // GET ASSETS AVAILABLE FOR NEW MAINTENANCE
+    //
+    // Only assets with REPAIRING damage reports.
+    // =========================================================
+
+    @GetMapping("/repairing-assets")
+    public ResponseEntity<List<MaintenanceAssetResponse>>
+    getRepairingAssets() {
+
+        return ResponseEntity.ok(
+                maintenanceService.getRepairingAssets()
+        );
+    }
 
 
     // =========================================================
