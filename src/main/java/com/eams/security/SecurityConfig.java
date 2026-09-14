@@ -220,7 +220,8 @@ public class SecurityConfig {
                                 "/api/departments/*"
                         ).hasAnyRole(
                                 "ADMIN",
-                                "MANAGER"
+                                "MANAGER",
+                                "EMPLOYEE"
                         )
 
                         .requestMatchers(

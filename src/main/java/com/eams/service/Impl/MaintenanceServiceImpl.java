@@ -357,13 +357,6 @@ public class MaintenanceServiceImpl
                 break;
 
 
-            case CANCELLED:
-
-                asset.setStatus(
-                        AssetStatus.AVAILABLE
-                );
-
-                break;
         }
 
 

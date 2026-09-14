@@ -1,0 +1,2385 @@
+[1mdiff --git a/src/main/java/com/eams/entity/AssetAssignment.java b/src/main/java/com/eams/entity/AssetAssignment.java[m
+[1mindex c94b5a1..2aef9e0 100644[m
+[1m--- a/src/main/java/com/eams/entity/AssetAssignment.java[m
+[1m+++ b/src/main/java/com/eams/entity/AssetAssignment.java[m
+[36m@@ -76,75 +76,4 @@[m [mpublic class AssetAssignment {[m
+     protected void onUpdate() {[m
+         updatedAt = LocalDateTime.now();[m
+     }[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-/*package com.eams.entity;[m
+[31m-[m
+[31m-import jakarta.persistence.*;[m
+[31m-import lombok.AccessLevel;[m
+[31m-import lombok.Getter;[m
+[31m-import lombok.NoArgsConstructor;[m
+[31m-import lombok.Setter;[m
+[31m-[m
+[31m-import java.time.LocalDate;[m
+[31m-import java.time.LocalDateTime;[m
+[31m-[m
+[31m-@Entity[m
+[31m-@Table(name = "asset_assignments")[m
+[31m-@Getter[m
+[31m-@Setter[m
+[31m-@NoArgsConstructor(access = AccessLevel.PROTECTED)[m
+[31m-public class AssetAssignment {[m
+[31m-[m
+[31m-    @Id[m
+[31m-    @GeneratedValue(strategy = GenerationType.IDENTITY)[m
+[31m-    private Long id;[m
+[31m-[m
+[31m-    @ManyToOne(fetch = FetchType.LAZY, optional = false)[m
+[31m-    @JoinColumn(name = "asset_id", nullable = false)[m
+[31m-    private Asset asset;[m
+[31m-[m
+[31m-    @ManyToOne(fetch = FetchType.LAZY, optional = false)[m
+[31m-    @JoinColumn(name = "employee_id", nullable = false)[m
+[31m-    private Employee employee;[m
+[31m-[m
+[31m-    @Column(name = "assigned_date", nullable = false)[m
+[31m-    private LocalDate assignedDate;[m
+[31m-[m
+[31m-    @Column(name = "returned_date")[m
+[31m-    private LocalDate returnedDate;[m
+[31m-[m
+[31m-    @Enumerated(EnumType.STRING)[m
+[31m-    @Column(nullable = false, length = 20)[m
+[31m-    private AssignmentStatus status = AssignmentStatus.ACTIVE;[m
+[31m-[m
+[31m-    @ManyToOne(fetch = FetchType.LAZY)[m
+[31m-    @JoinColumn(name = "assigned_by")[m
+[31m-    private User assignedBy;[m
+[31m-[m
+[31m-    @Column(name = "return_note", length = 500)[m
+[31m-    private String returnNote;[m
+[31m-[m
+[31m-    @Column(name = "created_at", nullable = false, updatable = false)[m
+[31m-    private LocalDateTime createdAt;[m
+[31m-[m
+[31m-    @Column(name = "updated_at", nullable = false)[m
+[31m-    private LocalDateTime updatedAt;[m
+[31m-[m
+[31m-    @PrePersist[m
+[31m-    protected void onCreate() {[m
+[31m-        LocalDateTime now = LocalDateTime.now();[m
+[31m-        createdAt = now;[m
+[31m-        updatedAt = now;[m
+[31m-    }[m
+[31m-[m
+[31m-    @PreUpdate[m
+[31m-    protected void onUpdate() {[m
+[31m-        updatedAt = LocalDateTime.now();[m
+[31m-    }[m
+[31m-}*/[m
+\ No newline at end of file[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/main/java/com/eams/security/CustomUserDetailsService.java b/src/main/java/com/eams/security/CustomUserDetailsService.java[m
+[1mindex 8597b8d..c941f59 100644[m
+[1m--- a/src/main/java/com/eams/security/CustomUserDetailsService.java[m
+[1m+++ b/src/main/java/com/eams/security/CustomUserDetailsService.java[m
+[36m@@ -1,40 +1,40 @@[m
+[31m-package com.eams.security;[m
+[32m+[m[32m    package com.eams.security;[m
+ [m
+[31m-import com.eams.entity.User;[m
+[31m-import com.eams.repository.UserRepository;[m
+[31m-import lombok.RequiredArgsConstructor;[m
+[31m-import org.springframework.security.core.authority.SimpleGrantedAuthority;[m
+[31m-import org.springframework.security.core.userdetails.UserDetails;[m
+[31m-import org.springframework.security.core.userdetails.UserDetailsService;[m
+[31m-import org.springframework.security.core.userdetails.UsernameNotFoundException;[m
+[31m-import org.springframework.stereotype.Service;[m
+[32m+[m[32m    import com.eams.entity.User;[m
+[32m+[m[32m    import com.eams.repository.UserRepository;[m
+[32m+[m[32m    import lombok.RequiredArgsConstructor;[m
+[32m+[m[32m    import org.springframework.security.core.authority.SimpleGrantedAuthority;[m
+[32m+[m[32m    import org.springframework.security.core.userdetails.UserDetails;[m
+[32m+[m[32m    import org.springframework.security.core.userdetails.UserDetailsService;[m
+[32m+[m[32m    import org.springframework.security.core.userdetails.UsernameNotFoundException;[m
+[32m+[m[32m    import org.springframework.stereotype.Service;[m
+ [m
+[31m-@Service[m
+[31m-@RequiredArgsConstructor[m
+[31m-public class CustomUserDetailsService implements UserDetailsService {[m
+[32m+[m[32m    @Service[m
+[32m+[m[32m    @RequiredArgsConstructor[m
+[32m+[m[32m    public class CustomUserDetailsService implements UserDetailsService {[m
+ [m
+[31m-    private final UserRepository userRepository;[m
+[32m+[m[32m        private final UserRepository userRepository;[m
+ [m
+[31m-    @Override[m
+[31m-    public UserDetails loadUserByUsername(String email)[m
+[31m-            throws UsernameNotFoundException {[m
+[32m+[m[32m        @Override[m
+[32m+[m[32m        public UserDetails loadUserByUsername(String email)[m
+[32m+[m[32m                throws UsernameNotFoundException {[m
+ [m
+[31m-        User user = userRepository.findByEmail(email)[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new UsernameNotFoundException([m
+[31m-                                "User not found: " + email[m
+[31m-                        )[m
+[31m-                );[m
+[32m+[m[32m            User user = userRepository.findByEmail(email)[m
+[32m+[m[32m                    .orElseThrow(() ->[m
+[32m+[m[32m                            new UsernameNotFoundException([m
+[32m+[m[32m                                    "User not found: " + email[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                    );[m
+ [m
+[31m-        return org.springframework.security.core.userdetails.User[m
+[31m-                .withUsername(user.getEmail())[m
+[31m-                .password(user.getPassword())[m
+[31m-                .authorities([m
+[31m-                        new SimpleGrantedAuthority([m
+[31m-                                "ROLE_" + user.getRole().getName()[m
+[31m-                        )[m
+[31m-                )[m
+[31m-                .disabled(!user.isEnabled())[m
+[31m-                .build();[m
+[31m-    }[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m            return org.springframework.security.core.userdetails.User[m
+[32m+[m[32m                    .withUsername(user.getEmail())[m
+[32m+[m[32m                    .password(user.getPassword())[m
+[32m+[m[32m                    .authorities([m
+[32m+[m[32m                            new SimpleGrantedAuthority([m
+[32m+[m[32m                                    "ROLE_" + user.getRole().getName()[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                    )[m
+[32m+[m[32m                    .disabled(!user.isEnabled())[m
+[32m+[m[32m                    .build();[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+\ No newline at end of file[m
+[1mdiff --git a/src/main/java/com/eams/security/SecurityConfig.java b/src/main/java/com/eams/security/SecurityConfig.java[m
+[1mindex 140278b..be217b9 100644[m
+[1m--- a/src/main/java/com/eams/security/SecurityConfig.java[m
+[1m+++ b/src/main/java/com/eams/security/SecurityConfig.java[m
+[36m@@ -220,7 +220,8 @@[m [mpublic class SecurityConfig {[m
+                                 "/api/departments/*"[m
+                         ).hasAnyRole([m
+                                 "ADMIN",[m
+[31m-                                "MANAGER"[m
+[32m+[m[32m                                "MANAGER",[m
+[32m+[m[32m                                "EMPLOYEE"[m
+                         )[m
+ [m
+                         .requestMatchers([m
+[1mdiff --git a/src/main/java/com/eams/service/Impl/AssetRequestServiceImpl.java b/src/main/java/com/eams/service/Impl/AssetRequestServiceImpl.java[m
+[1mindex 6ad4c18..7f22a36 100644[m
+[1m--- a/src/main/java/com/eams/service/Impl/AssetRequestServiceImpl.java[m
+[1m+++ b/src/main/java/com/eams/service/Impl/AssetRequestServiceImpl.java[m
+[36m@@ -11,6 +11,7 @@[m [mimport com.eams.entity.AssetRequest;[m
+ import com.eams.entity.AssetStatus;[m
+ import com.eams.entity.AssignmentStatus;[m
+ import com.eams.entity.Employee;[m
+[32m+[m[32mimport com.eams.entity.EmployeeStatus;[m
+ import com.eams.entity.RequestStatus;[m
+ import com.eams.entity.User;[m
+ [m
+[36m@@ -35,7 +36,8 @@[m [mimport java.util.List;[m
+ [m
+ @Service[m
+ @Transactional[m
+[31m-public class AssetRequestServiceImpl implements AssetRequestService {[m
+[32m+[m[32mpublic class AssetRequestServiceImpl[m
+[32m+[m[32m        implements AssetRequestService {[m
+ [m
+     private final AssetRequestRepository assetRequestRepository;[m
+     private final EmployeeRepository employeeRepository;[m
+[36m@@ -52,12 +54,23 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+             AssetAssignmentRepository assetAssignmentRepository,[m
+             NotificationService notificationService[m
+     ) {[m
+[31m-        this.assetRequestRepository = assetRequestRepository;[m
+[31m-        this.employeeRepository = employeeRepository;[m
+[31m-        this.assetRepository = assetRepository;[m
+[31m-        this.userRepository = userRepository;[m
+[31m-        this.assetAssignmentRepository = assetAssignmentRepository;[m
+[31m-        this.notificationService = notificationService;[m
+[32m+[m[32m        this.assetRequestRepository =[m
+[32m+[m[32m                assetRequestRepository;[m
+[32m+[m
+[32m+[m[32m        this.employeeRepository =[m
+[32m+[m[32m                employeeRepository;[m
+[32m+[m
+[32m+[m[32m        this.assetRepository =[m
+[32m+[m[32m                assetRepository;[m
+[32m+[m
+[32m+[m[32m        this.userRepository =[m
+[32m+[m[32m                userRepository;[m
+[32m+[m
+[32m+[m[32m        this.assetAssignmentRepository =[m
+[32m+[m[32m                assetAssignmentRepository;[m
+[32m+[m
+[32m+[m[32m        this.notificationService =[m
+[32m+[m[32m                notificationService;[m
+     }[m
+ [m
+     // =========================================================[m
+[36m@@ -69,25 +82,52 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+             AssetRequestCreateRequest request[m
+     ) {[m
+ [m
+[31m-        Employee employee = employeeRepository[m
+[31m-                .findById(request.getEmployeeId())[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Employee not found"[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                employeeRepository[m
+[32m+[m[32m                        .findById([m
+[32m+[m[32m                                request.getEmployeeId()[m
+                         )[m
+[31m-                );[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Employee not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // INACTIVE EMPLOYEE CANNOT REQUEST ASSET[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (employee.getStatus() !=[m
+[32m+[m[32m                EmployeeStatus.ACTIVE) {[m
+ [m
+[31m-        Asset asset = assetRepository[m
+[31m-                .findById(request.getAssetId())[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Asset not found"[m
+[32m+[m[32m            throw new ResponseStatusException([m
+[32m+[m[32m                    HttpStatus.FORBIDDEN,[m
+[32m+[m[32m                    "Inactive employees cannot request assets"[m
+[32m+[m[32m            );[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Asset asset =[m
+[32m+[m[32m                assetRepository[m
+[32m+[m[32m                        .findById([m
+[32m+[m[32m                                request.getAssetId()[m
+                         )[m
+[31m-                );[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Asset not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // ONLY AVAILABLE ASSETS CAN BE REQUESTED[m
+[32m+[m[32m        //[m
+[32m+[m[32m        // RETIRED is automatically rejected here.[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (asset.getStatus() !=[m
+[32m+[m[32m                AssetStatus.AVAILABLE) {[m
+ [m
+[31m-        if (asset.getStatus() != AssetStatus.AVAILABLE) {[m
+             throw new ResponseStatusException([m
+                     HttpStatus.BAD_REQUEST,[m
+                     "Asset is not available for request"[m
+[36m@@ -102,7 +142,9 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                 );[m
+ [m
+         AssetRequest savedRequest =[m
+[31m-                assetRequestRepository.save(assetRequest);[m
+[32m+[m[32m                assetRequestRepository.save([m
+[32m+[m[32m                        assetRequest[m
+[32m+[m[32m                );[m
+ [m
+         return toResponse(savedRequest);[m
+     }[m
+[36m@@ -113,7 +155,9 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+ [m
+     @Override[m
+     @Transactional(readOnly = true)[m
+[31m-    public List<AssetRequestResponse> getMyRequests(Long employeeId) {[m
+[32m+[m[32m    public List<AssetRequestResponse> getMyRequests([m
+[32m+[m[32m            Long employeeId[m
+[32m+[m[32m    ) {[m
+ [m
+         return assetRequestRepository[m
+                 .findByEmployeeId(employeeId)[m
+[36m@@ -131,7 +175,9 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+     public List<AssetRequestResponse> getPendingRequests() {[m
+ [m
+         return assetRequestRepository[m
+[31m-                .findByStatus(RequestStatus.PENDING)[m
+[32m+[m[32m                .findByStatus([m
+[32m+[m[32m                        RequestStatus.PENDING[m
+[32m+[m[32m                )[m
+                 .stream()[m
+                 .map(this::toResponse)[m
+                 .toList();[m
+[36m@@ -148,7 +194,8 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+     ) {[m
+ [m
+         AssetRequest assetRequest =[m
+[31m-                assetRequestRepository.findById(requestId)[m
+[32m+[m[32m                assetRequestRepository[m
+[32m+[m[32m                        .findById(requestId)[m
+                         .orElseThrow(() ->[m
+                                 new ResponseStatusException([m
+                                         HttpStatus.NOT_FOUND,[m
+[36m@@ -156,20 +203,45 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                                 )[m
+                         );[m
+ [m
+[31m-        if (assetRequest.getStatus() != RequestStatus.PENDING) {[m
+[32m+[m[32m        if (assetRequest.getStatus() !=[m
+[32m+[m[32m                RequestStatus.PENDING) {[m
+[32m+[m
+             throw new ResponseStatusException([m
+                     HttpStatus.BAD_REQUEST,[m
+                     "Only PENDING requests can be approved"[m
+             );[m
+         }[m
+ [m
+[31m-        User manager = userRepository.findById(managerId)[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Manager not found"[m
+[31m-                        )[m
+[31m-                );[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Check employee is still ACTIVE[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                assetRequest.getEmployee();[m
+[32m+[m
+[32m+[m[32m        if (employee == null ||[m
+[32m+[m[32m                employee.getStatus() !=[m
+[32m+[m[32m                        EmployeeStatus.ACTIVE) {[m
+[32m+[m
+[32m+[m[32m            throw new ResponseStatusException([m
+[32m+[m[32m                    HttpStatus.BAD_REQUEST,[m
+[32m+[m[32m                    "Cannot approve a request from an inactive employee"[m
+[32m+[m[32m            );[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Check manager[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        User manager =[m
+[32m+[m[32m                userRepository[m
+[32m+[m[32m                        .findById(managerId)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Manager not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         if (manager.getRole() == null ||[m
+                 !"MANAGER".equalsIgnoreCase([m
+[36m@@ -182,20 +254,40 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+             );[m
+         }[m
+ [m
+[31m-        assetRequest.setStatus(RequestStatus.APPROVED);[m
+[31m-        assetRequest.setApprovedBy(manager);[m
+[31m-        assetRequest.setApprovedAt(LocalDateTime.now());[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Approve[m
+[32m+[m[32m        // -----------------------------------------------------[m
+ [m
+[31m-        AssetRequest savedRequest =[m
+[31m-                assetRequestRepository.save(assetRequest);[m
+[32m+[m[32m        assetRequest.setStatus([m
+[32m+[m[32m                RequestStatus.APPROVED[m
+[32m+[m[32m        );[m
+ [m
+[31m-        notificationService.sendRequestApprovedNotification([m
+[31m-                savedRequest.getEmployee().getEmail(),[m
+[31m-                savedRequest.getAsset() != null[m
+[31m-                        ? savedRequest.getAsset().getName()[m
+[31m-                        : "asset"[m
+[32m+[m[32m        assetRequest.setApprovedBy([m
+[32m+[m[32m                manager[m
+         );[m
+ [m
+[32m+[m[32m        assetRequest.setApprovedAt([m
+[32m+[m[32m                LocalDateTime.now()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        AssetRequest savedRequest =[m
+[32m+[m[32m                assetRequestRepository.save([m
+[32m+[m[32m                        assetRequest[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m        notificationService[m
+[32m+[m[32m                .sendRequestApprovedNotification([m
+[32m+[m[32m                        savedRequest[m
+[32m+[m[32m                                .getEmployee()[m
+[32m+[m[32m                                .getEmail(),[m
+[32m+[m
+[32m+[m[32m                        savedRequest.getAsset() != null[m
+[32m+[m[32m                                ? savedRequest[m
+[32m+[m[32m                                .getAsset()[m
+[32m+[m[32m                                .getName()[m
+[32m+[m[32m                                : "asset"[m
+[32m+[m[32m                );[m
+[32m+[m
+         return toResponse(savedRequest);[m
+     }[m
+ [m
+[36m@@ -211,7 +303,8 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+     ) {[m
+ [m
+         AssetRequest assetRequest =[m
+[31m-                assetRequestRepository.findById(requestId)[m
+[32m+[m[32m                assetRequestRepository[m
+[32m+[m[32m                        .findById(requestId)[m
+                         .orElseThrow(() ->[m
+                                 new ResponseStatusException([m
+                                         HttpStatus.NOT_FOUND,[m
+[36m@@ -219,20 +312,28 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                                 )[m
+                         );[m
+ [m
+[31m-        if (assetRequest.getStatus() != RequestStatus.PENDING) {[m
+[32m+[m[32m        if (assetRequest.getStatus() !=[m
+[32m+[m[32m                RequestStatus.PENDING) {[m
+[32m+[m
+             throw new ResponseStatusException([m
+                     HttpStatus.BAD_REQUEST,[m
+                     "Only PENDING requests can be rejected"[m
+             );[m
+         }[m
+ [m
+[31m-        User manager = userRepository.findById(managerId)[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Manager not found"[m
+[31m-                        )[m
+[31m-                );[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Check manager[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        User manager =[m
+[32m+[m[32m                userRepository[m
+[32m+[m[32m                        .findById(managerId)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Manager not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         if (manager.getRole() == null ||[m
+                 !"MANAGER".equalsIgnoreCase([m
+[36m@@ -245,22 +346,41 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+             );[m
+         }[m
+ [m
+[31m-        assetRequest.setStatus(RequestStatus.REJECTED);[m
+[31m-        assetRequest.setApprovedBy(manager);[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Reject[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        assetRequest.setStatus([m
+[32m+[m[32m                RequestStatus.REJECTED[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        assetRequest.setApprovedBy([m
+[32m+[m[32m                manager[m
+[32m+[m[32m        );[m
+[32m+[m
+         assetRequest.setRejectionReason([m
+                 request.getRejectionReason()[m
+         );[m
+ [m
+         AssetRequest savedRequest =[m
+[31m-                assetRequestRepository.save(assetRequest);[m
+[32m+[m[32m                assetRequestRepository.save([m
+[32m+[m[32m                        assetRequest[m
+[32m+[m[32m                );[m
+ [m
+[31m-        notificationService.sendRequestRejectedNotification([m
+[31m-                savedRequest.getEmployee().getEmail(),[m
+[31m-                savedRequest.getAsset() != null[m
+[31m-                        ? savedRequest.getAsset().getName()[m
+[31m-                        : "asset",[m
+[31m-                request.getRejectionReason()[m
+[31m-        );[m
+[32m+[m[32m        notificationService[m
+[32m+[m[32m                .sendRequestRejectedNotification([m
+[32m+[m[32m                        savedRequest[m
+[32m+[m[32m                                .getEmployee()[m
+[32m+[m[32m                                .getEmail(),[m
+[32m+[m
+[32m+[m[32m                        savedRequest.getAsset() != null[m
+[32m+[m[32m                                ? savedRequest[m
+[32m+[m[32m                                .getAsset()[m
+[32m+[m[32m                                .getName()[m
+[32m+[m[32m                                : "asset",[m
+[32m+[m
+[32m+[m[32m                        request.getRejectionReason()[m
+[32m+[m[32m                );[m
+ [m
+         return toResponse(savedRequest);[m
+     }[m
+[36m@@ -274,11 +394,23 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+     public List<AssetRequestResponse> getApprovedRequests() {[m
+ [m
+         return assetRequestRepository[m
+[31m-                .findByStatus(RequestStatus.APPROVED)[m
+[32m+[m[32m                .findByStatus([m
+[32m+[m[32m                        RequestStatus.APPROVED[m
+[32m+[m[32m                )[m
+                 .stream()[m
+                 .filter(request ->[m
+[31m-                        request.getAsset() != null &&[m
+[31m-                                request.getAsset().getStatus() ==[m
+[32m+[m[32m                        request.getEmployee() != null[m
+[32m+[m[32m                                &&[m
+[32m+[m[32m                                request.getEmployee()[m
+[32m+[m[32m                                        .getStatus()[m
+[32m+[m[32m                                        ==[m
+[32m+[m[32m                                        EmployeeStatus.ACTIVE[m
+[32m+[m[32m                                &&[m
+[32m+[m[32m                                request.getAsset() != null[m
+[32m+[m[32m                                &&[m
+[32m+[m[32m                                request.getAsset()[m
+[32m+[m[32m                                        .getStatus()[m
+[32m+[m[32m                                        ==[m
+                                         AssetStatus.AVAILABLE[m
+                 )[m
+                 .map(this::toResponse)[m
+[36m@@ -296,7 +428,8 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+     ) {[m
+ [m
+         AssetRequest assetRequest =[m
+[31m-                assetRequestRepository.findById(requestId)[m
+[32m+[m[32m                assetRequestRepository[m
+[32m+[m[32m                        .findById(requestId)[m
+                         .orElseThrow(() ->[m
+                                 new ResponseStatusException([m
+                                         HttpStatus.NOT_FOUND,[m
+[36m@@ -304,20 +437,28 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                                 )[m
+                         );[m
+ [m
+[31m-        if (assetRequest.getStatus() != RequestStatus.APPROVED) {[m
+[32m+[m[32m        if (assetRequest.getStatus() !=[m
+[32m+[m[32m                RequestStatus.APPROVED) {[m
+[32m+[m
+             throw new ResponseStatusException([m
+                     HttpStatus.BAD_REQUEST,[m
+                     "Only APPROVED requests can be assigned"[m
+             );[m
+         }[m
+ [m
+[31m-        User admin = userRepository.findById(adminId)[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Admin not found"[m
+[31m-                        )[m
+[31m-                );[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Check admin[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        User admin =[m
+[32m+[m[32m                userRepository[m
+[32m+[m[32m                        .findById(adminId)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Admin not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         if (admin.getRole() == null ||[m
+                 !"ADMIN".equalsIgnoreCase([m
+[36m@@ -330,38 +471,82 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+             );[m
+         }[m
+ [m
+[31m-        Employee employee = employeeRepository[m
+[31m-                .findById(assetRequest.getEmployee().getId())[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Employee not found"[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Find employee[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                employeeRepository[m
+[32m+[m[32m                        .findById([m
+[32m+[m[32m                                assetRequest[m
+[32m+[m[32m                                        .getEmployee()[m
+[32m+[m[32m                                        .getId()[m
+                         )[m
+[31m-                );[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Employee not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // INACTIVE EMPLOYEE CANNOT RECEIVE ASSET[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (employee.getStatus() !=[m
+[32m+[m[32m                EmployeeStatus.ACTIVE) {[m
+[32m+[m
+[32m+[m[32m            throw new ResponseStatusException([m
+[32m+[m[32m                    HttpStatus.BAD_REQUEST,[m
+[32m+[m[32m                    "Cannot assign an asset to an inactive employee"[m
+[32m+[m[32m            );[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Find asset[m
+[32m+[m[32m        // -----------------------------------------------------[m
+ [m
+         if (assetRequest.getAsset() == null) {[m
+[32m+[m
+             throw new ResponseStatusException([m
+                     HttpStatus.NOT_FOUND,[m
+                     "Asset is not associated with this request"[m
+             );[m
+         }[m
+ [m
+[31m-        Asset asset = assetRepository[m
+[31m-                .findById(assetRequest.getAsset().getId())[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Asset not found"[m
+[32m+[m[32m        Asset asset =[m
+[32m+[m[32m                assetRepository[m
+[32m+[m[32m                        .findById([m
+[32m+[m[32m                                assetRequest[m
+[32m+[m[32m                                        .getAsset()[m
+[32m+[m[32m                                        .getId()[m
+                         )[m
+[31m-                );[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Asset not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // ONLY AVAILABLE ASSET CAN BE ASSIGNED[m
+[32m+[m[32m        //[m
+[32m+[m[32m        // RETIRED cannot pass this check.[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (asset.getStatus() !=[m
+[32m+[m[32m                AssetStatus.AVAILABLE) {[m
+ [m
+[31m-        if (asset.getStatus() != AssetStatus.AVAILABLE) {[m
+             throw new ResponseStatusException([m
+                     HttpStatus.BAD_REQUEST,[m
+                     "Asset is not available for assignment"[m
+             );[m
+         }[m
+ [m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Prevent duplicate active assignment[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         boolean alreadyAssigned =[m
+                 assetAssignmentRepository[m
+                         .existsByAssetIdAndStatus([m
+[36m@@ -370,12 +555,17 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                         );[m
+ [m
+         if (alreadyAssigned) {[m
+[32m+[m
+             throw new ResponseStatusException([m
+                     HttpStatus.BAD_REQUEST,[m
+                     "Asset is already assigned to another employee"[m
+             );[m
+         }[m
+ [m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Create assignment[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         AssetAssignment assignment =[m
+                 new AssetAssignment([m
+                         asset,[m
+[36m@@ -385,21 +575,46 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                 );[m
+ [m
+         AssetAssignment savedAssignment =[m
+[31m-                assetAssignmentRepository.save(assignment);[m
+[32m+[m[32m                assetAssignmentRepository.save([m
+[32m+[m[32m                        assignment[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Asset becomes ASSIGNED[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        asset.setStatus([m
+[32m+[m[32m                AssetStatus.ASSIGNED[m
+[32m+[m[32m        );[m
+ [m
+[31m-        asset.setStatus(AssetStatus.ASSIGNED);[m
+         assetRepository.save(asset);[m
+ [m
+[31m-        assetRequest.setStatus(RequestStatus.ASSIGNED);[m
+[31m-        assetRequestRepository.save(assetRequest);[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Request becomes ASSIGNED[m
+[32m+[m[32m        // -----------------------------------------------------[m
+ [m
+[31m-        notificationService.sendAssetAssignedNotification([m
+[31m-                employee.getEmail(),[m
+[31m-                asset.getName(),[m
+[31m-                asset.getAssetCode()[m
+[32m+[m[32m        assetRequest.setStatus([m
+[32m+[m[32m                RequestStatus.ASSIGNED[m
+         );[m
+ [m
+[31m-        return toAssignmentResponse(savedAssignment);[m
+[32m+[m[32m        assetRequestRepository.save([m
+[32m+[m[32m                assetRequest[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Notification[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        notificationService[m
+[32m+[m[32m                .sendAssetAssignedNotification([m
+[32m+[m[32m                        employee.getEmail(),[m
+[32m+[m[32m                        asset.getName(),[m
+[32m+[m[32m                        asset.getAssetCode()[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m        return toAssignmentResponse([m
+[32m+[m[32m                savedAssignment[m
+[32m+[m[32m        );[m
+     }[m
+ [m
+     // =========================================================[m
+[36m@@ -414,7 +629,8 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+     ) {[m
+ [m
+         AssetAssignment assignment =[m
+[31m-                assetAssignmentRepository.findById(assignmentId)[m
+[32m+[m[32m                assetAssignmentRepository[m
+[32m+[m[32m                        .findById(assignmentId)[m
+                         .orElseThrow(() ->[m
+                                 new ResponseStatusException([m
+                                         HttpStatus.NOT_FOUND,[m
+[36m@@ -422,32 +638,65 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                                 )[m
+                         );[m
+ [m
+[31m-        if (!assignment.getEmployee().getId().equals(employeeId)) {[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Employee can only return their own asset[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (!assignment[m
+[32m+[m[32m                .getEmployee()[m
+[32m+[m[32m                .getId()[m
+[32m+[m[32m                .equals(employeeId)) {[m
+[32m+[m
+             throw new ResponseStatusException([m
+                     HttpStatus.FORBIDDEN,[m
+                     "You can only request return for your own asset"[m
+             );[m
+         }[m
+ [m
+[31m-        if (assignment.getStatus() != AssignmentStatus.ACTIVE) {[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Only ACTIVE assignment can request return[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (assignment.getStatus() !=[m
+[32m+[m[32m                AssignmentStatus.ACTIVE) {[m
+[32m+[m
+             throw new ResponseStatusException([m
+                     HttpStatus.BAD_REQUEST,[m
+                     "Only ACTIVE assignments can request a return"[m
+             );[m
+         }[m
+ [m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Return request[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         assignment.setStatus([m
+                 AssignmentStatus.RETURN_REQUESTED[m
+         );[m
+ [m
+[31m-        assignment.setReturnNote([m
+[31m-                request.getReturnNote()[m
+[31m-        );[m
+[32m+[m[32m        if (request != null) {[m
+[32m+[m
+[32m+[m[32m            assignment.setReturnNote([m
+[32m+[m[32m                    request.getReturnNote()[m
+[32m+[m[32m            );[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        /*[m
+[32m+[m[32m         * IMPORTANT:[m
+[32m+[m[32m         *[m
+[32m+[m[32m         * Asset remains ASSIGNED.[m
+[32m+[m[32m         *[m
+[32m+[m[32m         * Employee still physically has it.[m
+[32m+[m[32m         */[m
+ [m
+         AssetAssignment savedAssignment =[m
+[31m-                assetAssignmentRepository.save(assignment);[m
+[32m+[m[32m                assetAssignmentRepository.save([m
+[32m+[m[32m                        assignment[m
+[32m+[m[32m                );[m
+ [m
+[31m-        return toAssignmentResponse(savedAssignment);[m
+[32m+[m[32m        return toAssignmentResponse([m
+[32m+[m[32m                savedAssignment[m
+[32m+[m[32m        );[m
+     }[m
+ [m
+     // =========================================================[m
+[36m@@ -462,7 +711,8 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+     ) {[m
+ [m
+         AssetAssignment assignment =[m
+[31m-                assetAssignmentRepository.findById(assignmentId)[m
+[32m+[m[32m                assetAssignmentRepository[m
+[32m+[m[32m                        .findById(assignmentId)[m
+                         .orElseThrow(() ->[m
+                                 new ResponseStatusException([m
+                                         HttpStatus.NOT_FOUND,[m
+[36m@@ -470,13 +720,19 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                                 )[m
+                         );[m
+ [m
+[31m-        User admin = userRepository.findById(adminId)[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Admin not found"[m
+[31m-                        )[m
+[31m-                );[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Check admin[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        User admin =[m
+[32m+[m[32m                userRepository[m
+[32m+[m[32m                        .findById(adminId)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Admin not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         if (admin.getRole() == null ||[m
+                 !"ADMIN".equalsIgnoreCase([m
+[36m@@ -489,6 +745,10 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+             );[m
+         }[m
+ [m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Only RETURN_REQUESTED can be received[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         if (assignment.getStatus() !=[m
+                 AssignmentStatus.RETURN_REQUESTED) {[m
+ [m
+[36m@@ -498,22 +758,42 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+             );[m
+         }[m
+ [m
+[31m-        Asset asset = assetRepository[m
+[31m-                .findById(assignment.getAsset().getId())[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new ResponseStatusException([m
+[31m-                                HttpStatus.NOT_FOUND,[m
+[31m-                                "Asset not found"[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Find asset[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        Asset asset =[m
+[32m+[m[32m                assetRepository[m
+[32m+[m[32m                        .findById([m
+[32m+[m[32m                                assignment[m
+[32m+[m[32m                                        .getAsset()[m
+[32m+[m[32m                                        .getId()[m
+                         )[m
+[31m-                );[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new ResponseStatusException([m
+[32m+[m[32m                                        HttpStatus.NOT_FOUND,[m
+[32m+[m[32m                                        "Asset not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+[31m-        assignment.setStatus(AssignmentStatus.RETURNED);[m
+[31m-        assignment.setReturnedDate(LocalDate.now());[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Assignment becomes RETURNED[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        assignment.setStatus([m
+[32m+[m[32m                AssignmentStatus.RETURNED[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        assignment.setReturnedDate([m
+[32m+[m[32m                LocalDate.now()[m
+[32m+[m[32m        );[m
+ [m
+         /*[m
+[31m-         * Keep the employee's return note if one already exists.[m
+[31m-         * If the admin supplies a note, replace it.[m
+[32m+[m[32m         * Keep employee return note.[m
+[32m+[m[32m         *[m
+[32m+[m[32m         * Admin can replace it with another note.[m
+          */[m
+[32m+[m
+         if (request != null &&[m
+                 request.getReturnNote() != null &&[m
+                 !request.getReturnNote().isBlank()) {[m
+[36m@@ -524,18 +804,48 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+         }[m
+ [m
+         AssetAssignment savedAssignment =[m
+[31m-                assetAssignmentRepository.save(assignment);[m
+[32m+[m[32m                assetAssignmentRepository.save([m
+[32m+[m[32m                        assignment[m
+[32m+[m[32m                );[m
+ [m
+[31m-        asset.setStatus(AssetStatus.AVAILABLE);[m
+[31m-        assetRepository.save(asset);[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Asset becomes AVAILABLE[m
+[32m+[m[32m        // -----------------------------------------------------[m
+ [m
+[31m-        notificationService.sendAssetReturnedNotification([m
+[31m-                savedAssignment.getEmployee().getEmail(),[m
+[31m-                asset.getName(),[m
+[31m-                asset.getAssetCode()[m
+[32m+[m[32m        /*[m
+[32m+[m[32m         * At this point the asset is physically back[m
+[32m+[m[32m         * with the admin.[m
+[32m+[m[32m         *[m
+[32m+[m[32m         * Therefore:[m
+[32m+[m[32m         *[m
+[32m+[m[32m         * AssignmentStatus = RETURNED[m
+[32m+[m[32m         * AssetStatus       = AVAILABLE[m
+[32m+[m[32m         */[m
+[32m+[m
+[32m+[m[32m        asset.setStatus([m
+[32m+[m[32m                AssetStatus.AVAILABLE[m
+         );[m
+ [m
+[31m-        return toAssignmentResponse(savedAssignment);[m
+[32m+[m[32m        assetRepository.save(asset);[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // Notification[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        notificationService[m
+[32m+[m[32m                .sendAssetReturnedNotification([m
+[32m+[m[32m                        savedAssignment[m
+[32m+[m[32m                                .getEmployee()[m
+[32m+[m[32m                                .getEmail(),[m
+[32m+[m
+[32m+[m[32m                        asset.getName(),[m
+[32m+[m
+[32m+[m[32m                        asset.getAssetCode()[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m        return toAssignmentResponse([m
+[32m+[m[32m                savedAssignment[m
+[32m+[m[32m        );[m
+     }[m
+ [m
+     // =========================================================[m
+[36m@@ -544,9 +854,11 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+ [m
+     @Override[m
+     @Transactional(readOnly = true)[m
+[31m-    public List<AssetAssignmentResponse> getAssignmentHistory() {[m
+[32m+[m[32m    public List<AssetAssignmentResponse>[m
+[32m+[m[32m    getAssignmentHistory() {[m
+ [m
+[31m-        return assetAssignmentRepository.findAll()[m
+[32m+[m[32m        return assetAssignmentRepository[m
+[32m+[m[32m                .findAll()[m
+                 .stream()[m
+                 .map(this::toAssignmentResponse)[m
+                 .toList();[m
+[36m@@ -558,14 +870,18 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+ [m
+     @Override[m
+     @Transactional(readOnly = true)[m
+[31m-    public AssetRequestResponse getRequestById(Long id) {[m
+[32m+[m[32m    public AssetRequestResponse getRequestById([m
+[32m+[m[32m            Long id[m
+[32m+[m[32m    ) {[m
+ [m
+         AssetRequest assetRequest =[m
+[31m-                assetRequestRepository.findById(id)[m
+[32m+[m[32m                assetRequestRepository[m
+[32m+[m[32m                        .findById(id)[m
+                         .orElseThrow(() ->[m
+                                 new ResponseStatusException([m
+                                         HttpStatus.NOT_FOUND,[m
+[31m-                                        "Asset request not found with id: " + id[m
+[32m+[m[32m                                        "Asset request not found with id: "[m
+[32m+[m[32m                                                + id[m
+                                 )[m
+                         );[m
+ [m
+[36m@@ -578,7 +894,8 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+ [m
+     @Override[m
+     @Transactional(readOnly = true)[m
+[31m-    public List<AssetAssignmentResponse> getMyAssignedAssets([m
+[32m+[m[32m    public List<AssetAssignmentResponse>[m
+[32m+[m[32m    getMyAssignedAssets([m
+             Long employeeId[m
+     ) {[m
+ [m
+[36m@@ -602,12 +919,14 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+ [m
+     @Override[m
+     @Transactional(readOnly = true)[m
+[31m-    public AssetAssignmentResponse getAssignmentById([m
+[32m+[m[32m    public AssetAssignmentResponse[m
+[32m+[m[32m    getAssignmentById([m
+             Long assignmentId[m
+     ) {[m
+ [m
+         AssetAssignment assignment =[m
+[31m-                assetAssignmentRepository.findById(assignmentId)[m
+[32m+[m[32m                assetAssignmentRepository[m
+[32m+[m[32m                        .findById(assignmentId)[m
+                         .orElseThrow(() ->[m
+                                 new ResponseStatusException([m
+                                         HttpStatus.NOT_FOUND,[m
+[36m@@ -615,27 +934,38 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                                 )[m
+                         );[m
+ [m
+[31m-        return toAssignmentResponse(assignment);[m
+[32m+[m[32m        return toAssignmentResponse([m
+[32m+[m[32m                assignment[m
+[32m+[m[32m        );[m
+     }[m
+ [m
+     // =========================================================[m
+[31m-    // MAPPERS[m
+[32m+[m[32m    // MAP ASSIGNMENT RESPONSE[m
+     // =========================================================[m
+ [m
+[31m-    private AssetAssignmentResponse toAssignmentResponse([m
+[32m+[m[32m    private AssetAssignmentResponse[m
+[32m+[m[32m    toAssignmentResponse([m
+             AssetAssignment assignment[m
+     ) {[m
+ [m
+         return new AssetAssignmentResponse([m
+                 assignment.getId(),[m
+ [m
+[31m-                assignment.getAsset().getId(),[m
+[32m+[m[32m                assignment[m
+[32m+[m[32m                        .getAsset()[m
+[32m+[m[32m                        .getId(),[m
+ [m
+[31m-                assignment.getAsset().getAssetCode(),[m
+[32m+[m[32m                assignment[m
+[32m+[m[32m                        .getAsset()[m
+[32m+[m[32m                        .getAssetCode(),[m
+ [m
+[31m-                assignment.getAsset().getName(),[m
+[32m+[m[32m                assignment[m
+[32m+[m[32m                        .getAsset()[m
+[32m+[m[32m                        .getName(),[m
+ [m
+[31m-                assignment.getEmployee().getId(),[m
+[32m+[m[32m                assignment[m
+[32m+[m[32m                        .getEmployee()[m
+[32m+[m[32m                        .getId(),[m
+ [m
+                 assignment.getAssignedDate(),[m
+ [m
+[36m@@ -644,56 +974,87 @@[m [mpublic class AssetRequestServiceImpl implements AssetRequestService {[m
+                 assignment.getStatus(),[m
+ [m
+                 assignment.getAssignedBy() != null[m
+[31m-                        ? assignment.getAssignedBy().getId()[m
+[32m+[m[32m                        ? assignment[m
+[32m+[m[32m                        .getAssignedBy()[m
+[32m+[m[32m                        .getId()[m
+                         : null,[m
+ [m
+                 assignment.getReturnNote()[m
+         );[m
+     }[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // MAP REQUEST RESPONSE[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     private AssetRequestResponse toResponse([m
+             AssetRequest request[m
+     ) {[m
+ [m
+[31m-        AssignmentStatus assignmentStatus = null;[m
+[32m+[m[32m        AssignmentStatus assignmentStatus =[m
+[32m+[m[32m                null;[m
+ [m
+         if (request.getAsset() != null) {[m
+ [m
+[31m-            assignmentStatus = assetAssignmentRepository[m
+[31m-                    .findByEmployeeId([m
+[31m-                            request.getEmployee().getId()[m
+[31m-                    )[m
+[31m-                    .stream()[m
+[31m-                    .filter(assignment ->[m
+[31m-                            assignment.getAsset().getId()[m
+[31m-                                    .equals([m
+[31m-                                            request.getAsset().getId()[m
+[32m+[m[32m            assignmentStatus =[m
+[32m+[m[32m                    assetAssignmentRepository[m
+[32m+[m[32m                            .findByEmployeeId([m
+[32m+[m[32m                                    request[m
+[32m+[m[32m                                            .getEmployee()[m
+[32m+[m[32m                                            .getId()[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                            .stream()[m
+[32m+[m[32m                            .filter(assignment ->[m
+[32m+[m[32m                                    assignment[m
+[32m+[m[32m                                            .getAsset()[m
+[32m+[m[32m                                            .getId()[m
+[32m+[m[32m                                            .equals([m
+[32m+[m[32m                                                    request[m
+[32m+[m[32m                                                            .getAsset()[m
+[32m+[m[32m                                                            .getId()[m
+[32m+[m[32m                                            )[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                            .max([m
+[32m+[m[32m                                    Comparator.comparing([m
+[32m+[m[32m                                            AssetAssignment::getId[m
+                                     )[m
+[31m-                    )[m
+[31m-                    .max([m
+[31m-                            Comparator.comparing([m
+[31m-                                    AssetAssignment::getId[m
+                             )[m
+[31m-                    )[m
+[31m-                    .map(AssetAssignment::getStatus)[m
+[31m-                    .orElse(null);[m
+[32m+[m[32m                            .map([m
+[32m+[m[32m                                    AssetAssignment::getStatus[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                            .orElse(null);[m
+         }[m
+ [m
+         return new AssetRequestResponse([m
+                 request.getId(),[m
+[31m-                request.getEmployee().getId(),[m
+[32m+[m
+[32m+[m[32m                request[m
+[32m+[m[32m                        .getEmployee()[m
+[32m+[m[32m                        .getId(),[m
+[32m+[m
+                 request.getAsset() != null[m
+[31m-                        ? request.getAsset().getId()[m
+[32m+[m[32m                        ? request[m
+[32m+[m[32m                        .getAsset()[m
+[32m+[m[32m                        .getId()[m
+                         : null,[m
+[32m+[m
+                 request.getRequestDate(),[m
+[32m+[m
+                 request.getReason(),[m
+[32m+[m
+                 request.getStatus(),[m
+[32m+[m
+                 assignmentStatus,[m
+[32m+[m
+                 request.getApprovedBy() != null[m
+[31m-                        ? request.getApprovedBy().getId()[m
+[32m+[m[32m                        ? request[m
+[32m+[m[32m                        .getApprovedBy()[m
+[32m+[m[32m                        .getId()[m
+                         : null,[m
+[32m+[m
+                 request.getApprovedAt(),[m
+[32m+[m
+                 request.getRejectionReason()[m
+         );[m
+     }[m
+[31m-}[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/main/java/com/eams/service/Impl/DashboardServiceImpl.java b/src/main/java/com/eams/service/Impl/DashboardServiceImpl.java[m
+[1mindex 6dfd792..afc4780 100644[m
+[1m--- a/src/main/java/com/eams/service/Impl/DashboardServiceImpl.java[m
+[1m+++ b/src/main/java/com/eams/service/Impl/DashboardServiceImpl.java[m
+[36m@@ -304,15 +304,6 @@[m [mpublic class DashboardServiceImpl[m
+         );[m
+ [m
+ [m
+[31m-        response.setCancelledMaintenance([m
+[31m-                maintenanceRepository[m
+[31m-                        .findByStatus([m
+[31m-                                MaintenanceStatus.CANCELLED[m
+[31m-                        )[m
+[31m-                        .size()[m
+[31m-        );[m
+[31m-[m
+[31m-[m
+         response.setMaintenanceAssets([m
+                 assetRepository[m
+                         .findByStatus([m
+[36m@@ -458,12 +449,6 @@[m [mpublic class DashboardServiceImpl[m
+                 )[m
+         );[m
+ [m
+[31m-        response.setCancelledMaintenance([m
+[31m-                countMaintenance([m
+[31m-                        MaintenanceStatus.CANCELLED[m
+[31m-                )[m
+[31m-        );[m
+[31m-[m
+ [m
+         // Assignments[m
+ [m
+[1mdiff --git a/src/main/java/com/eams/service/Impl/EmployeeServiceImpl.java b/src/main/java/com/eams/service/Impl/EmployeeServiceImpl.java[m
+[1mindex d52d8ce..a2d6f7c 100644[m
+[1m--- a/src/main/java/com/eams/service/Impl/EmployeeServiceImpl.java[m
+[1m+++ b/src/main/java/com/eams/service/Impl/EmployeeServiceImpl.java[m
+[36m@@ -3,9 +3,16 @@[m [mpackage com.eams.service.impl;[m
+ import com.eams.dto.request.EmployeeProfileRequest;[m
+ import com.eams.dto.request.EmployeeRequest;[m
+ import com.eams.dto.response.EmployeeResponse;[m
+[32m+[m[32mimport com.eams.entity.AssetAssignment;[m
+[32m+[m[32mimport com.eams.entity.AssignmentStatus;[m
+ import com.eams.entity.Department;[m
+ import com.eams.entity.Employee;[m
+[32m+[m[32mimport com.eams.entity.EmployeeStatus;[m
+[32m+[m[32mimport com.eams.entity.AssetRequest;[m
+[32m+[m[32mimport com.eams.entity.RequestStatus;[m
+ import com.eams.entity.User;[m
+[32m+[m[32mimport com.eams.repository.AssetAssignmentRepository;[m
+[32m+[m[32mimport com.eams.repository.AssetRequestRepository;[m
+ import com.eams.repository.DepartmentRepository;[m
+ import com.eams.repository.EmployeeRepository;[m
+ import com.eams.repository.UserRepository;[m
+[36m@@ -20,6 +27,8 @@[m [mimport org.springframework.security.core.context.SecurityContextHolder;[m
+ import org.springframework.stereotype.Service;[m
+ import org.springframework.transaction.annotation.Transactional;[m
+ [m
+[32m+[m[32mimport java.util.List;[m
+[32m+[m
+ @Service[m
+ @RequiredArgsConstructor[m
+ @Transactional[m
+[36m@@ -29,18 +38,31 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+     private final DepartmentRepository departmentRepository;[m
+     private final UserRepository userRepository;[m
+ [m
+[32m+[m[32m    // Asset lifecycle repositories[m
+[32m+[m[32m    private final AssetAssignmentRepository assetAssignmentRepository;[m
+[32m+[m[32m    private final AssetRequestRepository assetRequestRepository;[m
+[32m+[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // CREATE CURRENT EMPLOYEE[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+[31m-    public EmployeeResponse createCurrentEmployee(EmployeeRequest request) {[m
+[32m+[m[32m    public EmployeeResponse createCurrentEmployee([m
+[32m+[m[32m            EmployeeRequest request) {[m
+ [m
+         Authentication authentication =[m
+[31m-                SecurityContextHolder.getContext().getAuthentication();[m
+[32m+[m[32m                SecurityContextHolder[m
+[32m+[m[32m                        .getContext()[m
+[32m+[m[32m                        .getAuthentication();[m
+ [m
+         String email = authentication.getName();[m
+ [m
+         User user = userRepository.findByEmail(email)[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "User not found: " + email[m
+[31m-                ));[m
+[32m+[m[32m                .orElseThrow(() ->[m
+[32m+[m[32m                        new EntityNotFoundException([m
+[32m+[m[32m                                "User not found: " + email[m
+[32m+[m[32m                        )[m
+[32m+[m[32m                );[m
+ [m
+         if (employeeRepository.existsByUserId(user.getId())) {[m
+             throw new IllegalArgumentException([m
+[36m@@ -48,19 +70,26 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+             );[m
+         }[m
+ [m
+[31m-        String employeeCode = request.getEmployeeCode().trim();[m
+[32m+[m[32m        String employeeCode =[m
+[32m+[m[32m                request.getEmployeeCode().trim();[m
+[32m+[m
+[32m+[m[32m        if (employeeRepository.existsByEmployeeCode([m
+[32m+[m[32m                employeeCode)) {[m
+ [m
+[31m-        if (employeeRepository.existsByEmployeeCode(employeeCode)) {[m
+             throw new IllegalArgumentException([m
+                     "Employee code already exists"[m
+             );[m
+         }[m
+ [m
+[31m-        Department department = departmentRepository[m
+[31m-                .findById(request.getDepartmentId())[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Department not found: " + request.getDepartmentId()[m
+[31m-                ));[m
+[32m+[m[32m        Department department =[m
+[32m+[m[32m                departmentRepository[m
+[32m+[m[32m                        .findById(request.getDepartmentId())[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Department not found: "[m
+[32m+[m[32m                                                + request.getDepartmentId()[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         Employee employee = new Employee([m
+                 employeeCode,[m
+[36m@@ -78,27 +107,40 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+             employee.setStatus(request.getStatus());[m
+         }[m
+ [m
+[31m-        Employee savedEmployee = employeeRepository.save(employee);[m
+[32m+[m[32m        Employee savedEmployee =[m
+[32m+[m[32m                employeeRepository.save(employee);[m
+ [m
+         return mapToResponse(savedEmployee);[m
+     }[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // CREATE EMPLOYEE[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+[31m-    public EmployeeResponse createEmployee(EmployeeRequest request) {[m
+[32m+[m[32m    public EmployeeResponse createEmployee([m
+[32m+[m[32m            EmployeeRequest request) {[m
+ [m
+[31m-        String employeeCode = request.getEmployeeCode().trim();[m
+[32m+[m[32m        String employeeCode =[m
+[32m+[m[32m                request.getEmployeeCode().trim();[m
+[32m+[m
+[32m+[m[32m        if (employeeRepository.existsByEmployeeCode([m
+[32m+[m[32m                employeeCode)) {[m
+ [m
+[31m-        if (employeeRepository.existsByEmployeeCode(employeeCode)) {[m
+             throw new IllegalArgumentException([m
+                     "Employee code already exists"[m
+             );[m
+         }[m
+ [m
+[31m-        Department department = departmentRepository[m
+[31m-                .findById(request.getDepartmentId())[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Department not found: " + request.getDepartmentId()[m
+[31m-                ));[m
+[32m+[m[32m        Department department =[m
+[32m+[m[32m                departmentRepository[m
+[32m+[m[32m                        .findById(request.getDepartmentId())[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Department not found: "[m
+[32m+[m[32m                                                + request.getDepartmentId()[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         Employee employee = new Employee([m
+                 employeeCode,[m
+[36m@@ -117,25 +159,36 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+ [m
+         if (request.getUserId() != null) {[m
+ [m
+[31m-            if (employeeRepository.existsByUserId(request.getUserId())) {[m
+[32m+[m[32m            if (employeeRepository.existsByUserId([m
+[32m+[m[32m                    request.getUserId())) {[m
+[32m+[m
+                 throw new IllegalArgumentException([m
+                         "User is already linked to another employee"[m
+                 );[m
+             }[m
+ [m
+[31m-            User user = userRepository.findById(request.getUserId())[m
+[31m-                    .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                            "User not found: " + request.getUserId()[m
+[31m-                    ));[m
+[32m+[m[32m            User user = userRepository[m
+[32m+[m[32m                    .findById(request.getUserId())[m
+[32m+[m[32m                    .orElseThrow(() ->[m
+[32m+[m[32m                            new EntityNotFoundException([m
+[32m+[m[32m                                    "User not found: "[m
+[32m+[m[32m                                            + request.getUserId()[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                    );[m
+ [m
+             employee.setUser(user);[m
+         }[m
+ [m
+[31m-        Employee savedEmployee = employeeRepository.save(employee);[m
+[32m+[m[32m        Employee savedEmployee =[m
+[32m+[m[32m                employeeRepository.save(employee);[m
+ [m
+         return mapToResponse(savedEmployee);[m
+     }[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // GET ALL EMPLOYEES[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+     @Transactional(readOnly = true)[m
+     public Page<EmployeeResponse> getAllEmployees([m
+[36m@@ -144,77 +197,135 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+ [m
+         validatePageAndSize(page, size);[m
+ [m
+[31m-        Pageable pageable = PageRequest.of(page, size);[m
+[32m+[m[32m        Pageable pageable =[m
+[32m+[m[32m                PageRequest.of(page, size);[m
+ [m
+         return employeeRepository[m
+                 .findAll(pageable)[m
+                 .map(this::mapToResponse);[m
+     }[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // GET EMPLOYEE BY ID[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+     @Transactional(readOnly = true)[m
+[31m-    public EmployeeResponse getEmployeeById(Long id) {[m
+[31m-[m
+[31m-        Employee employee = employeeRepository.findById(id)[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Employee not found: " + id[m
+[31m-                ));[m
+[32m+[m[32m    public EmployeeResponse getEmployeeById([m
+[32m+[m[32m            Long id) {[m
+[32m+[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                employeeRepository.findById(id)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Employee not found: " + id[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         return mapToResponse(employee);[m
+     }[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // UPDATE EMPLOYEE[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+     public EmployeeResponse updateEmployee([m
+             Long id,[m
+             EmployeeRequest request) {[m
+ [m
+[31m-        Employee employee = employeeRepository.findById(id)[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Employee not found: " + id[m
+[31m-                ));[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                employeeRepository.findById(id)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Employee not found: " + id[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        // Keep old status so we can detect:[m
+[32m+[m[32m        // ACTIVE -> INACTIVE[m
+[32m+[m[32m        EmployeeStatus oldStatus =[m
+[32m+[m[32m                employee.getStatus();[m
+ [m
+[31m-        String employeeCode = request.getEmployeeCode().trim();[m
+[32m+[m[32m        String employeeCode =[m
+[32m+[m[32m                request.getEmployeeCode().trim();[m
+ [m
+[31m-        employeeRepository.findByEmployeeCode(employeeCode)[m
+[31m-                .filter(existing -> !existing.getId().equals(id))[m
+[32m+[m[32m        employeeRepository[m
+[32m+[m[32m                .findByEmployeeCode(employeeCode)[m
+[32m+[m[32m                .filter(existing ->[m
+[32m+[m[32m                        !existing.getId().equals(id))[m
+                 .ifPresent(existing -> {[m
+                     throw new IllegalArgumentException([m
+                             "Employee code already exists"[m
+                     );[m
+                 });[m
+ [m
+[31m-        Department department = departmentRepository[m
+[31m-                .findById(request.getDepartmentId())[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Department not found: " + request.getDepartmentId()[m
+[31m-                ));[m
+[32m+[m[32m        Department department =[m
+[32m+[m[32m                departmentRepository[m
+[32m+[m[32m                        .findById(request.getDepartmentId())[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Department not found: "[m
+[32m+[m[32m                                                + request.getDepartmentId()[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         employee.setEmployeeCode(employeeCode);[m
+[31m-        employee.setFirstName(request.getFirstName().trim());[m
+[31m-        employee.setLastName(request.getLastName().trim());[m
+[31m-        employee.setPhone(request.getPhone());[m
+[31m-        employee.setDepartment(department);[m
+[31m-        employee.setPosition(request.getPosition());[m
+[31m-        employee.setHireDate(request.getHireDate());[m
+[32m+[m
+[32m+[m[32m        employee.setFirstName([m
+[32m+[m[32m                request.getFirstName().trim()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        employee.setLastName([m
+[32m+[m[32m                request.getLastName().trim()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        employee.setPhone([m
+[32m+[m[32m                request.getPhone()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        employee.setDepartment([m
+[32m+[m[32m                department[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        employee.setPosition([m
+[32m+[m[32m                request.getPosition()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        employee.setHireDate([m
+[32m+[m[32m                request.getHireDate()[m
+[32m+[m[32m        );[m
+ [m
+         if (request.getStatus() != null) {[m
+[31m-            employee.setStatus(request.getStatus());[m
+[32m+[m[32m            employee.setStatus([m
+[32m+[m[32m                    request.getStatus()[m
+[32m+[m[32m            );[m
+         }[m
+ [m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // USER LINK[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         if (request.getUserId() != null) {[m
+ [m
+[31m-            employeeRepository.findByUserId(request.getUserId())[m
+[31m-                    .filter(existing -> !existing.getId().equals(id))[m
+[32m+[m[32m            employeeRepository[m
+[32m+[m[32m                    .findByUserId(request.getUserId())[m
+[32m+[m[32m                    .filter(existing ->[m
+[32m+[m[32m                            !existing.getId().equals(id))[m
+                     .ifPresent(existing -> {[m
+                         throw new IllegalArgumentException([m
+                                 "User is already linked to another employee"[m
+                         );[m
+                     });[m
+ [m
+[31m-            User user = userRepository.findById(request.getUserId())[m
+[31m-                    .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                            "User not found: " + request.getUserId()[m
+[31m-                    ));[m
+[32m+[m[32m            User user = userRepository[m
+[32m+[m[32m                    .findById(request.getUserId())[m
+[32m+[m[32m                    .orElseThrow(() ->[m
+[32m+[m[32m                            new EntityNotFoundException([m
+[32m+[m[32m                                    "User not found: "[m
+[32m+[m[32m                                            + request.getUserId()[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                    );[m
+ [m
+             employee.setUser(user);[m
+ [m
+[36m@@ -222,29 +333,146 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+             employee.setUser(null);[m
+         }[m
+ [m
+[31m-        return mapToResponse(employee);[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // SAVE EMPLOYEE[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        Employee savedEmployee =[m
+[32m+[m[32m                employeeRepository.save(employee);[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // HANDLE ACTIVE -> INACTIVE[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        EmployeeStatus newStatus =[m
+[32m+[m[32m                savedEmployee.getStatus();[m
+[32m+[m
+[32m+[m[32m        if (newStatus == EmployeeStatus.INACTIVE &&[m
+[32m+[m[32m                oldStatus != EmployeeStatus.INACTIVE) {[m
+[32m+[m
+[32m+[m[32m            handleEmployeeBecomingInactive([m
+[32m+[m[32m                    savedEmployee[m
+[32m+[m[32m            );[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        return mapToResponse(savedEmployee);[m
+     }[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // HANDLE EMPLOYEE BECOMING INACTIVE[m
+[32m+[m[32m    //[m
+[32m+[m[32m    // Rules:[m
+[32m+[m[32m    //[m
+[32m+[m[32m    // 1. ACTIVE assignments[m
+[32m+[m[32m    //      -> RETURN_REQUESTED[m
+[32m+[m[32m    //[m
+[32m+[m[32m    // 2. Asset remains ASSIGNED[m
+[32m+[m[32m    //[m
+[32m+[m[32m    // 3. PENDING requests[m
+[32m+[m[32m    //      -> REJECTED[m
+[32m+[m[32m    //[m
+[32m+[m[32m    // 4. APPROVED requests[m
+[32m+[m[32m    //      -> REJECTED[m
+[32m+[m[32m    //[m
+[32m+[m[32m    // 5. Already ASSIGNED requests[m
+[32m+[m[32m    //      -> unchanged[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+[32m+[m[32m    private void handleEmployeeBecomingInactive([m
+[32m+[m[32m            Employee employee) {[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 1. Change active assignments to RETURN_REQUESTED[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        List<AssetAssignment> assignments =[m
+[32m+[m[32m                assetAssignmentRepository[m
+[32m+[m[32m                        .findByEmployeeId([m
+[32m+[m[32m                                employee.getId()[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        for (AssetAssignment assignment : assignments) {[m
+[32m+[m
+[32m+[m[32m            if (assignment.getStatus() ==[m
+[32m+[m[32m                    AssignmentStatus.ACTIVE) {[m
+[32m+[m
+[32m+[m[32m                assignment.setStatus([m
+[32m+[m[32m                        AssignmentStatus.RETURN_REQUESTED[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m                /*[m
+[32m+[m[32m                 * IMPORTANT:[m
+[32m+[m[32m                 *[m
+[32m+[m[32m                 * We DO NOT change the asset status here.[m
+[32m+[m[32m                 *[m
+[32m+[m[32m                 * The employee still physically has[m
+[32m+[m[32m                 * the asset.[m
+[32m+[m[32m                 *[m
+[32m+[m[32m                 * Therefore:[m
+[32m+[m[32m                 *[m
+[32m+[m[32m                 * AssetStatus = ASSIGNED[m
+[32m+[m[32m                 * AssignmentStatus = RETURN_REQUESTED[m
+[32m+[m[32m                 */[m
+[32m+[m
+[32m+[m[32m                assetAssignmentRepository.save([m
+[32m+[m[32m                        assignment[m
+[32m+[m[32m                );[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 2. Reject pending/approved requests[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        List<AssetRequest> requests =[m
+[32m+[m[32m                assetRequestRepository[m
+[32m+[m[32m                        .findByEmployeeId([m
+[32m+[m[32m                                employee.getId()[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        for (AssetRequest request : requests) {[m
+[32m+[m
+[32m+[m[32m            if (request.getStatus() ==[m
+[32m+[m[32m                    RequestStatus.PENDING[m
+[32m+[m[32m                    ||[m
+[32m+[m[32m                    request.getStatus() ==[m
+[32m+[m[32m                            RequestStatus.APPROVED) {[m
+[32m+[m
+[32m+[m[32m                request.setStatus([m
+[32m+[m[32m                        RequestStatus.REJECTED[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m                request.setRejectionReason([m
+[32m+[m[32m                        "Employee is inactive"[m
+[32m+[m[32m                );[m
+[32m+[m
+[32m+[m[32m                assetRequestRepository.save([m
+[32m+[m[32m                        request[m
+[32m+[m[32m                );[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // DELETE EMPLOYEE[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+     public void deleteEmployee(Long id) {[m
+ [m
+[31m-        Employee employee = employeeRepository.findById(id)[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Employee not found: " + id[m
+[31m-                ));[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                employeeRepository.findById(id)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Employee not found: " + id[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         employeeRepository.delete(employee);[m
+     }[m
+ [m
+     // =========================================================[m
+     // SEARCH EMPLOYEES[m
+[31m-    // Supports:[m
+[31m-    // - First name[m
+[31m-    // - Last name[m
+[31m-    // - Employee code[m
+[31m-    // - First name + last name[m
+[31m-    // - Last name + first name[m
+[31m-    // - Case-insensitive search[m
+     // =========================================================[m
+ [m
+     @Override[m
+[36m@@ -257,17 +485,23 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+         validatePageAndSize(page, size);[m
+ [m
+         String searchKeyword =[m
+[31m-                keyword == null ? "" : keyword.trim();[m
+[32m+[m[32m                keyword == null[m
+[32m+[m[32m                        ? ""[m
+[32m+[m[32m                        : keyword.trim();[m
+ [m
+[31m-        Pageable pageable = PageRequest.of(page, size);[m
+[32m+[m[32m        Pageable pageable =[m
+[32m+[m[32m                PageRequest.of(page, size);[m
+ [m
+         return employeeRepository[m
+[31m-                .searchEmployees(searchKeyword, pageable)[m
+[32m+[m[32m                .searchEmployees([m
+[32m+[m[32m                        searchKeyword,[m
+[32m+[m[32m                        pageable[m
+[32m+[m[32m                )[m
+                 .map(this::mapToResponse);[m
+     }[m
+ [m
+     // =========================================================[m
+[31m-    // CURRENT EMPLOYEE[m
+[32m+[m[32m    // GET CURRENT EMPLOYEE[m
+     // =========================================================[m
+ [m
+     @Override[m
+[36m@@ -275,38 +509,59 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+     public EmployeeResponse getCurrentEmployee() {[m
+ [m
+         Authentication authentication =[m
+[31m-                SecurityContextHolder.getContext().getAuthentication();[m
+[32m+[m[32m                SecurityContextHolder[m
+[32m+[m[32m                        .getContext()[m
+[32m+[m[32m                        .getAuthentication();[m
+ [m
+         String email = authentication.getName();[m
+ [m
+[31m-        Employee employee = employeeRepository.findByUserEmail(email)[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Employee profile not found for user: " + email[m
+[31m-                ));[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                employeeRepository[m
+[32m+[m[32m                        .findByUserEmail(email)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Employee profile not found "[m
+[32m+[m[32m                                                + "for user: " + email[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         return mapToResponse(employee);[m
+     }[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // UPDATE CURRENT EMPLOYEE PROFILE[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+     public EmployeeResponse updateCurrentEmployee([m
+             EmployeeProfileRequest request) {[m
+ [m
+[31m-        String email = SecurityContextHolder[m
+[31m-                .getContext()[m
+[31m-                .getAuthentication()[m
+[31m-                .getName();[m
+[31m-[m
+[31m-        Employee employee = employeeRepository.findByUserEmail(email)[m
+[31m-                .orElseThrow(() -> new EntityNotFoundException([m
+[31m-                        "Employee profile not found for user: " + email[m
+[31m-                ));[m
+[32m+[m[32m        String email =[m
+[32m+[m[32m                SecurityContextHolder[m
+[32m+[m[32m                        .getContext()[m
+[32m+[m[32m                        .getAuthentication()[m
+[32m+[m[32m                        .getName();[m
+[32m+[m
+[32m+[m[32m        Employee employee =[m
+[32m+[m[32m                employeeRepository[m
+[32m+[m[32m                        .findByUserEmail(email)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new EntityNotFoundException([m
+[32m+[m[32m                                        "Employee profile not found "[m
+[32m+[m[32m                                                + "for user: " + email[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+         if (request.getPhone() != null) {[m
+[31m-            employee.setPhone(request.getPhone());[m
+[32m+[m[32m            employee.setPhone([m
+[32m+[m[32m                    request.getPhone()[m
+[32m+[m[32m            );[m
+         }[m
+ [m
+         if (request.getPosition() != null) {[m
+[31m-            employee.setPosition(request.getPosition());[m
+[32m+[m[32m            employee.setPosition([m
+[32m+[m[32m                    request.getPosition()[m
+[32m+[m[32m            );[m
+         }[m
+ [m
+         employeeRepository.save(employee);[m
+[36m@@ -315,41 +570,85 @@[m [mpublic class EmployeeServiceImpl implements EmployeeService {[m
+     }[m
+ [m
+     // =========================================================[m
+[31m-    // MAPPER[m
+[32m+[m[32m    // MAP ENTITY TO RESPONSE[m
+     // =========================================================[m
+ [m
+[31m-    private EmployeeResponse mapToResponse(Employee employee) {[m
+[32m+[m[32m    private EmployeeResponse mapToResponse([m
+[32m+[m[32m            Employee employee) {[m
+ [m
+[31m-        EmployeeResponse response = new EmployeeResponse();[m
+[32m+[m[32m        EmployeeResponse response =[m
+[32m+[m[32m                new EmployeeResponse();[m
+ [m
+[31m-        response.setId(employee.getId());[m
+[32m+[m[32m        response.setId([m
+[32m+[m[32m                employee.getId()[m
+[32m+[m[32m        );[m
+ [m
+[32m+[m[32m        // User information[m
+         if (employee.getUser() != null) {[m
+[31m-            response.setUserId(employee.getUser().getId());[m
+[32m+[m
+[32m+[m[32m            response.setUserId([m
+[32m+[m[32m                    employee.getUser().getId()[m
+[32m+[m[32m            );[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        response.setEmployeeCode([m
+[32m+[m[32m                employee.getEmployeeCode()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        response.setFirstName([m
+[32m+[m[32m                employee.getFirstName()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        response.setLastName([m
+[32m+[m[32m                employee.getLastName()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        response.setPhone([m
+[32m+[m[32m                employee.getPhone()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        // Department information[m
+[32m+[m[32m        if (employee.getDepartment() != null) {[m
+[32m+[m
+[32m+[m[32m            response.setDepartmentId([m
+[32m+[m[32m                    employee.getDepartment().getId()[m
+[32m+[m[32m            );[m
+[32m+[m
+[32m+[m[32m            response.setDepartmentName([m
+[32m+[m[32m                    employee.getDepartment().getName()[m
+[32m+[m[32m            );[m
+         }[m
+ [m
+[31m-        response.setEmployeeCode(employee.getEmployeeCode());[m
+[31m-        response.setFirstName(employee.getFirstName());[m
+[31m-        response.setLastName(employee.getLastName());[m
+[31m-        response.setPhone(employee.getPhone());[m
+[32m+[m[32m        response.setPosition([m
+[32m+[m[32m                employee.getPosition()[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        response.setHireDate([m
+[32m+[m[32m                employee.getHireDate()[m
+[32m+[m[32m        );[m
+ [m
+[31m-        response.setDepartmentId([m
+[31m-                employee.getDepartment().getId()[m
+[32m+[m[32m        response.setStatus([m
+[32m+[m[32m                employee.getStatus()[m
+         );[m
+ [m
+[31m-        response.setDepartmentName([m
+[31m-                employee.getDepartment().getName()[m
+[32m+[m[32m        response.setCreatedAt([m
+[32m+[m[32m                employee.getCreatedAt()[m
+         );[m
+ [m
+[31m-        response.setPosition(employee.getPosition());[m
+[31m-        response.setHireDate(employee.getHireDate());[m
+[31m-        response.setStatus(employee.getStatus());[m
+[31m-        response.setCreatedAt(employee.getCreatedAt());[m
+[31m-        response.setUpdatedAt(employee.getUpdatedAt());[m
+[32m+[m[32m        response.setUpdatedAt([m
+[32m+[m[32m                employee.getUpdatedAt()[m
+[32m+[m[32m        );[m
+ [m
+         return response;[m
+     }[m
+[31m-    private void validatePageAndSize(int page, int size) {[m
+[32m+[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // VALIDATE PAGE AND SIZE[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+[32m+[m[32m    private void validatePageAndSize([m
+[32m+[m[32m            int page,[m
+[32m+[m[32m            int size) {[m
+ [m
+         if (page < 0) {[m
+             throw new IllegalArgumentException([m
+[1mdiff --git a/src/main/java/com/eams/service/Impl/MaintenanceServiceImpl.java b/src/main/java/com/eams/service/Impl/MaintenanceServiceImpl.java[m
+[1mindex e3245d9..47464f7 100644[m
+[1m--- a/src/main/java/com/eams/service/Impl/MaintenanceServiceImpl.java[m
+[1m+++ b/src/main/java/com/eams/service/Impl/MaintenanceServiceImpl.java[m
+[36m@@ -357,13 +357,6 @@[m [mpublic class MaintenanceServiceImpl[m
+                 break;[m
+ [m
+ [m
+[31m-            case CANCELLED:[m
+[31m-[m
+[31m-                asset.setStatus([m
+[31m-                        AssetStatus.AVAILABLE[m
+[31m-                );[m
+[31m-[m
+[31m-                break;[m
+         }[m
+ [m
+ [m
+[1mdiff --git a/src/main/java/com/eams/service/Impl/ReportServiceImpl.java b/src/main/java/com/eams/service/Impl/ReportServiceImpl.java[m
+[1mindex aba709f..ceef16e 100644[m
+[1m--- a/src/main/java/com/eams/service/Impl/ReportServiceImpl.java[m
+[1m+++ b/src/main/java/com/eams/service/Impl/ReportServiceImpl.java[m
+[36m@@ -148,12 +148,6 @@[m [mpublic class ReportServiceImpl[m
+                         )[m
+                 )[m
+ [m
+[31m-                .cancelled([m
+[31m-                        countMaintenance([m
+[31m-                                MaintenanceStatus.CANCELLED[m
+[31m-                        )[m
+[31m-                )[m
+[31m-[m
+                 .totalRepairCost([m
+                         calculateRepairCost()[m
+                 )[m
+[1mdiff --git a/src/main/java/com/eams/service/impl/AuthServiceImpl.java b/src/main/java/com/eams/service/impl/AuthServiceImpl.java[m
+[1mindex dd53737..4119c0f 100644[m
+[1m--- a/src/main/java/com/eams/service/impl/AuthServiceImpl.java[m
+[1m+++ b/src/main/java/com/eams/service/impl/AuthServiceImpl.java[m
+[36m@@ -1,21 +1,23 @@[m
+ package com.eams.service.impl;[m
+ [m
+[32m+[m[32mimport com.eams.dto.request.LoginRequest;[m
+ import com.eams.dto.request.RegisterRequest;[m
+[32m+[m[32mimport com.eams.dto.response.LoginResponse;[m
+[32m+[m[32mimport com.eams.entity.Employee;[m
+[32m+[m[32mimport com.eams.entity.EmployeeStatus;[m
+ import com.eams.entity.Role;[m
+ import com.eams.entity.User;[m
+[32m+[m[32mimport com.eams.repository.EmployeeRepository;[m
+ import com.eams.repository.RoleRepository;[m
+ import com.eams.repository.UserRepository;[m
+[32m+[m[32mimport com.eams.security.JwtService;[m
+ import com.eams.service.AuthService;[m
+[31m-import com.eams.service.EmailVerificationService;[m
+ import lombok.RequiredArgsConstructor;[m
+[32m+[m[32mimport org.springframework.security.authentication.AuthenticationManager;[m
+[32m+[m[32mimport org.springframework.security.authentication.UsernamePasswordAuthenticationToken;[m
+ import org.springframework.security.crypto.password.PasswordEncoder;[m
+ import org.springframework.stereotype.Service;[m
+ import org.springframework.transaction.annotation.Transactional;[m
+[31m-import com.eams.dto.request.LoginRequest;[m
+[31m-import com.eams.dto.response.LoginResponse;[m
+[31m-import com.eams.security.JwtService;[m
+[31m-import org.springframework.security.authentication.AuthenticationManager;[m
+[31m-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;[m
+ [m
+ @Service[m
+ @RequiredArgsConstructor[m
+[36m@@ -24,62 +26,141 @@[m [mpublic class AuthServiceImpl implements AuthService {[m
+ [m
+     private final UserRepository userRepository;[m
+     private final RoleRepository roleRepository;[m
+[32m+[m[32m    private final EmployeeRepository employeeRepository;[m
+[32m+[m
+     private final PasswordEncoder passwordEncoder;[m
+[31m-    private final EmailVerificationService emailVerificationService;[m
+     private final AuthenticationManager authenticationManager;[m
+     private final JwtService jwtService;[m
+ [m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // REGISTER[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+     public void register(RegisterRequest request) {[m
+ [m
+[31m-        // 1. Check whether email already exists[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 1. Check email[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         if (userRepository.existsByEmail(request.email())) {[m
+[31m-            throw new RuntimeException("Email already exists");[m
+[32m+[m
+[32m+[m[32m            throw new RuntimeException([m
+[32m+[m[32m                    "Email already exists"[m
+[32m+[m[32m            );[m
+         }[m
+ [m
+[31m-        // 2. Find default role[m
+[31m-        Role employeeRole = roleRepository.findByName("EMPLOYEE")[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new RuntimeException([m
+[31m-                                "EMPLOYEE role not found"[m
+[31m-                        ));[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 2. Find default EMPLOYEE role[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        Role employeeRole =[m
+[32m+[m[32m                roleRepository[m
+[32m+[m[32m                        .findByName("EMPLOYEE")[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new RuntimeException([m
+[32m+[m[32m                                        "EMPLOYEE role not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+ [m
+[32m+[m[32m        // -----------------------------------------------------[m
+         // 3. Create user[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         User user = User.builder()[m
+                 .email(request.email())[m
+                 .password([m
+[31m-                        passwordEncoder.encode(request.password())[m
+[32m+[m[32m                        passwordEncoder.encode([m
+[32m+[m[32m                                request.password()[m
+[32m+[m[32m                        )[m
+                 )[m
+                 .role(employeeRole)[m
+                 .enabled(true)[m
+[31m-                .emailVerified(false)[m
+[32m+[m[32m                .emailVerified(true)[m
+                 .build();[m
+ [m
+[31m-        // 4. Save user first[m
+[31m-        User savedUser = userRepository.save(user);[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 4. Save[m
+[32m+[m[32m        // -----------------------------------------------------[m
+ [m
+[31m-        // 5. Create verification token and send email[m
+[31m-        emailVerificationService[m
+[31m-                .createAndSendVerificationToken(savedUser.getId());[m
+[32m+[m[32m        userRepository.save(user);[m
+     }[m
+[31m-    @Override[m
+[31m-    public LoginResponse login(LoginRequest request) {[m
+ [m
+[31m-        User user = userRepository.findByEmail(request.email())[m
+[31m-                .orElseThrow(() ->[m
+[31m-                        new RuntimeException("Invalid email or password")[m
+[31m-                );[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // LOGIN[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+[32m+[m[32m    @Override[m
+[32m+[m[32m    public LoginResponse login([m
+[32m+[m[32m            LoginRequest request) {[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 1. Find user[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        User user =[m
+[32m+[m[32m                userRepository[m
+[32m+[m[32m                        .findByEmail(request.email())[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new RuntimeException([m
+[32m+[m[32m                                        "Invalid email or password"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 2. Check USER account enabled[m
+[32m+[m[32m        // -----------------------------------------------------[m
+ [m
+         if (!user.isEnabled()) {[m
+[31m-            throw new RuntimeException("Account is disabled");[m
+[31m-        }[m
+ [m
+[31m-        if (!user.isEmailVerified()) {[m
+             throw new RuntimeException([m
+[31m-                    "Please verify your email before logging in"[m
+[32m+[m[32m                    "Account is disabled"[m
+             );[m
+         }[m
+ [m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 3. Check EMPLOYEE status[m
+[32m+[m[32m        //[m
+[32m+[m[32m        // Only employees have EmployeeStatus.[m
+[32m+[m[32m        //[m
+[32m+[m[32m        // MANAGER / ADMIN are not blocked by employee status.[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (user.getRole() != null &&[m
+[32m+[m[32m                "EMPLOYEE".equalsIgnoreCase([m
+[32m+[m[32m                        user.getRole().getName()[m
+[32m+[m[32m                )) {[m
+[32m+[m
+[32m+[m[32m            Employee employee =[m
+[32m+[m[32m                    employeeRepository[m
+[32m+[m[32m                            .findByUserEmail([m
+[32m+[m[32m                                    user.getEmail()[m
+[32m+[m[32m                            )[m
+[32m+[m[32m                            .orElse(null);[m
+[32m+[m
+[32m+[m[32m            /*[m
+[32m+[m[32m             * If employee profile exists and is INACTIVE,[m
+[32m+[m[32m             * login is blocked.[m
+[32m+[m[32m             *[m
+[32m+[m[32m             * If profile does not exist yet, login is allowed[m
+[32m+[m[32m             * because the employee may still need to create[m
+[32m+[m[32m             * their employee profile.[m
+[32m+[m[32m             */[m
+[32m+[m
+[32m+[m[32m            if (employee != null &&[m
+[32m+[m[32m                    employee.getStatus() ==[m
+[32m+[m[32m                            EmployeeStatus.INACTIVE) {[m
+[32m+[m
+[32m+[m[32m                throw new RuntimeException([m
+[32m+[m[32m                        "Your employee account is inactive"[m
+[32m+[m[32m                );[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 4. Authenticate email + password[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+         authenticationManager.authenticate([m
+                 new UsernamePasswordAuthenticationToken([m
+                         request.email(),[m
+[36m@@ -87,7 +168,16 @@[m [mpublic class AuthServiceImpl implements AuthService {[m
+                 )[m
+         );[m
+ [m
+[31m-        String token = jwtService.generateToken(user);[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 5. Generate JWT[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        String token =[m
+[32m+[m[32m                jwtService.generateToken(user);[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 6. Return login response[m
+[32m+[m[32m        // -----------------------------------------------------[m
+ [m
+         return new LoginResponse([m
+                 token,[m
+[36m@@ -95,25 +185,69 @@[m [mpublic class AuthServiceImpl implements AuthService {[m
+                 user.getRole().getName()[m
+         );[m
+     }[m
+[32m+[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m[32m    // CHANGE PASSWORD[m
+[32m+[m[32m    // =========================================================[m
+[32m+[m
+     @Override[m
+     public void changePassword([m
+             String email,[m
+             String currentPassword,[m
+             String newPassword[m
+     ) {[m
+[31m-        User user = userRepository.findByEmail(email)[m
+[31m-                .orElseThrow(() -> new RuntimeException("User not found"));[m
+ [m
+[31m-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {[m
+[31m-            throw new IllegalArgumentException("Current password is incorrect");[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 1. Find current user[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        User user =[m
+[32m+[m[32m                userRepository[m
+[32m+[m[32m                        .findByEmail(email)[m
+[32m+[m[32m                        .orElseThrow(() ->[m
+[32m+[m[32m                                new RuntimeException([m
+[32m+[m[32m                                        "User not found"[m
+[32m+[m[32m                                )[m
+[32m+[m[32m                        );[m
+[32m+[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 2. Verify current password[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (!passwordEncoder.matches([m
+[32m+[m[32m                currentPassword,[m
+[32m+[m[32m                user.getPassword()[m
+[32m+[m[32m        )) {[m
+[32m+[m
+[32m+[m[32m            throw new IllegalArgumentException([m
+[32m+[m[32m                    "Current password is incorrect"[m
+[32m+[m[32m            );[m
+         }[m
+ [m
+[31m-        if (passwordEncoder.matches(newPassword, user.getPassword())) {[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 3. New password cannot be same[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        if (passwordEncoder.matches([m
+[32m+[m[32m                newPassword,[m
+[32m+[m[32m                user.getPassword()[m
+[32m+[m[32m        )) {[m
+[32m+[m
+             throw new IllegalArgumentException([m
+[31m-                    "New password must be different from current password");[m
+[32m+[m[32m                    "New password must be different from current password"[m
+[32m+[m[32m            );[m
+         }[m
+ [m
+[31m-        user.setPassword(passwordEncoder.encode(newPassword));[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m[32m        // 4. Save new password[m
+[32m+[m[32m        // -----------------------------------------------------[m
+[32m+[m
+[32m+[m[32m        user.setPassword([m
+[32m+[m[32m                passwordEncoder.encode([m
+[32m+[m[32m                        newPassword[m
+[32m+[m[32m                )[m
+[32m+[m[32m        );[m
+[32m+[m
+         userRepository.save(user);[m
+     }[m
+ }[m
+\ No newline at end of file[m
+[1mdiff --git a/src/main/resources/application.properties b/src/main/resources/application.properties[m
+[1mindex b3f210d..2b2be88 100644[m
+[1m--- a/src/main/resources/application.properties[m
+[1m+++ b/src/main/resources/application.properties[m
+[36m@@ -11,7 +11,6 @@[m [mspring.datasource.password=${DB_PASSWORD}[m
+ # ==========================================[m
+ # JPA / HIBERNATE[m
+ # ==========================================[m
+[31m-[m
+ spring.jpa.hibernate.ddl-auto=update[m
+ spring.jpa.show-sql=true[m
+ spring.jpa.properties.hibernate.format_sql=true[m
+[36m@@ -22,22 +21,6 @@[m [mspring.jpa.properties.hibernate.format_sql=true[m
+ [m
+ server.port=8080[m
+ [m
+[31m-# ==========================================[m
+[31m-# MAIL[m
+[31m-# ==========================================[m
+[31m-[m
+[31m-spring.mail.host=smtp-relay.brevo.com[m
+[31m-spring.mail.port=587[m
+[31m-spring.mail.username=${PASSWORD}[m
+[31m-spring.mail.password=${USERNAME}[m
+[31m-[m
+[31m-spring.mail.properties.mail.smtp.auth=true[m
+[31m-spring.mail.properties.mail.smtp.starttls.enable=true[m
+[31m-[m
+[31m-app.mail.from=rubbyboo16@gmail.com[m
+[31m-# ==========================================[m
+[31m-# JWT[m
+[31m-# ==========================================[m
+ [m
+ jwt.secret=${JWT_SECRET}[m
+ jwt.expiration=86400000[m
+\ No newline at end of file[m

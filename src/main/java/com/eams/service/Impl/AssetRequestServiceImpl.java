@@ -11,6 +11,7 @@ import com.eams.entity.AssetRequest;
 import com.eams.entity.AssetStatus;
 import com.eams.entity.AssignmentStatus;
 import com.eams.entity.Employee;
+import com.eams.entity.EmployeeStatus;
 import com.eams.entity.RequestStatus;
 import com.eams.entity.User;
 
@@ -35,7 +36,8 @@ import java.util.List;
 
 @Service
 @Transactional
-public class AssetRequestServiceImpl implements AssetRequestService {
+public class AssetRequestServiceImpl
+        implements AssetRequestService {
 
     private final AssetRequestRepository assetRequestRepository;
     private final EmployeeRepository employeeRepository;
@@ -52,12 +54,23 @@ public class AssetRequestServiceImpl implements AssetRequestService {
             AssetAssignmentRepository assetAssignmentRepository,
             NotificationService notificationService
     ) {
-        this.assetRequestRepository = assetRequestRepository;
-        this.employeeRepository = employeeRepository;
-        this.assetRepository = assetRepository;
-        this.userRepository = userRepository;
-        this.assetAssignmentRepository = assetAssignmentRepository;
-        this.notificationService = notificationService;
+        this.assetRequestRepository =
+                assetRequestRepository;
+
+        this.employeeRepository =
+                employeeRepository;
+
+        this.assetRepository =
+                assetRepository;
+
+        this.userRepository =
+                userRepository;
+
+        this.assetAssignmentRepository =
+                assetAssignmentRepository;
+
+        this.notificationService =
+                notificationService;
     }
 
     // =========================================================
@@ -69,25 +82,52 @@ public class AssetRequestServiceImpl implements AssetRequestService {
             AssetRequestCreateRequest request
     ) {
 
-        Employee employee = employeeRepository
-                .findById(request.getEmployeeId())
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Employee not found"
+        Employee employee =
+                employeeRepository
+                        .findById(
+                                request.getEmployeeId()
                         )
-                );
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Employee not found"
+                                )
+                        );
 
-        Asset asset = assetRepository
-                .findById(request.getAssetId())
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Asset not found"
+        // -----------------------------------------------------
+        // INACTIVE EMPLOYEE CANNOT REQUEST ASSET
+        // -----------------------------------------------------
+
+        if (employee.getStatus() !=
+                EmployeeStatus.ACTIVE) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Inactive employees cannot request assets"
+            );
+        }
+
+        Asset asset =
+                assetRepository
+                        .findById(
+                                request.getAssetId()
                         )
-                );
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Asset not found"
+                                )
+                        );
 
-        if (asset.getStatus() != AssetStatus.AVAILABLE) {
+        // -----------------------------------------------------
+        // ONLY AVAILABLE ASSETS CAN BE REQUESTED
+        //
+        // RETIRED is automatically rejected here.
+        // -----------------------------------------------------
+
+        if (asset.getStatus() !=
+                AssetStatus.AVAILABLE) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Asset is not available for request"
@@ -102,7 +142,9 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                 );
 
         AssetRequest savedRequest =
-                assetRequestRepository.save(assetRequest);
+                assetRequestRepository.save(
+                        assetRequest
+                );
 
         return toResponse(savedRequest);
     }
@@ -113,7 +155,9 @@ public class AssetRequestServiceImpl implements AssetRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AssetRequestResponse> getMyRequests(Long employeeId) {
+    public List<AssetRequestResponse> getMyRequests(
+            Long employeeId
+    ) {
 
         return assetRequestRepository
                 .findByEmployeeId(employeeId)
@@ -131,7 +175,9 @@ public class AssetRequestServiceImpl implements AssetRequestService {
     public List<AssetRequestResponse> getPendingRequests() {
 
         return assetRequestRepository
-                .findByStatus(RequestStatus.PENDING)
+                .findByStatus(
+                        RequestStatus.PENDING
+                )
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -148,7 +194,8 @@ public class AssetRequestServiceImpl implements AssetRequestService {
     ) {
 
         AssetRequest assetRequest =
-                assetRequestRepository.findById(requestId)
+                assetRequestRepository
+                        .findById(requestId)
                         .orElseThrow(() ->
                                 new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
@@ -156,20 +203,45 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                                 )
                         );
 
-        if (assetRequest.getStatus() != RequestStatus.PENDING) {
+        if (assetRequest.getStatus() !=
+                RequestStatus.PENDING) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Only PENDING requests can be approved"
             );
         }
 
-        User manager = userRepository.findById(managerId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Manager not found"
-                        )
-                );
+        // -----------------------------------------------------
+        // Check employee is still ACTIVE
+        // -----------------------------------------------------
+
+        Employee employee =
+                assetRequest.getEmployee();
+
+        if (employee == null ||
+                employee.getStatus() !=
+                        EmployeeStatus.ACTIVE) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Cannot approve a request from an inactive employee"
+            );
+        }
+
+        // -----------------------------------------------------
+        // Check manager
+        // -----------------------------------------------------
+
+        User manager =
+                userRepository
+                        .findById(managerId)
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Manager not found"
+                                )
+                        );
 
         if (manager.getRole() == null ||
                 !"MANAGER".equalsIgnoreCase(
@@ -182,19 +254,39 @@ public class AssetRequestServiceImpl implements AssetRequestService {
             );
         }
 
-        assetRequest.setStatus(RequestStatus.APPROVED);
-        assetRequest.setApprovedBy(manager);
-        assetRequest.setApprovedAt(LocalDateTime.now());
+        // -----------------------------------------------------
+        // Approve
+        // -----------------------------------------------------
+
+        assetRequest.setStatus(
+                RequestStatus.APPROVED
+        );
+
+        assetRequest.setApprovedBy(
+                manager
+        );
+
+        assetRequest.setApprovedAt(
+                LocalDateTime.now()
+        );
 
         AssetRequest savedRequest =
-                assetRequestRepository.save(assetRequest);
+                assetRequestRepository.save(
+                        assetRequest
+                );
 
-        notificationService.sendRequestApprovedNotification(
-                savedRequest.getEmployee().getEmail(),
-                savedRequest.getAsset() != null
-                        ? savedRequest.getAsset().getName()
-                        : "asset"
-        );
+        notificationService
+                .sendRequestApprovedNotification(
+                        savedRequest
+                                .getEmployee()
+                                .getEmail(),
+
+                        savedRequest.getAsset() != null
+                                ? savedRequest
+                                .getAsset()
+                                .getName()
+                                : "asset"
+                );
 
         return toResponse(savedRequest);
     }
@@ -211,7 +303,8 @@ public class AssetRequestServiceImpl implements AssetRequestService {
     ) {
 
         AssetRequest assetRequest =
-                assetRequestRepository.findById(requestId)
+                assetRequestRepository
+                        .findById(requestId)
                         .orElseThrow(() ->
                                 new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
@@ -219,20 +312,28 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                                 )
                         );
 
-        if (assetRequest.getStatus() != RequestStatus.PENDING) {
+        if (assetRequest.getStatus() !=
+                RequestStatus.PENDING) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Only PENDING requests can be rejected"
             );
         }
 
-        User manager = userRepository.findById(managerId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Manager not found"
-                        )
-                );
+        // -----------------------------------------------------
+        // Check manager
+        // -----------------------------------------------------
+
+        User manager =
+                userRepository
+                        .findById(managerId)
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Manager not found"
+                                )
+                        );
 
         if (manager.getRole() == null ||
                 !"MANAGER".equalsIgnoreCase(
@@ -245,22 +346,41 @@ public class AssetRequestServiceImpl implements AssetRequestService {
             );
         }
 
-        assetRequest.setStatus(RequestStatus.REJECTED);
-        assetRequest.setApprovedBy(manager);
+        // -----------------------------------------------------
+        // Reject
+        // -----------------------------------------------------
+
+        assetRequest.setStatus(
+                RequestStatus.REJECTED
+        );
+
+        assetRequest.setApprovedBy(
+                manager
+        );
+
         assetRequest.setRejectionReason(
                 request.getRejectionReason()
         );
 
         AssetRequest savedRequest =
-                assetRequestRepository.save(assetRequest);
+                assetRequestRepository.save(
+                        assetRequest
+                );
 
-        notificationService.sendRequestRejectedNotification(
-                savedRequest.getEmployee().getEmail(),
-                savedRequest.getAsset() != null
-                        ? savedRequest.getAsset().getName()
-                        : "asset",
-                request.getRejectionReason()
-        );
+        notificationService
+                .sendRequestRejectedNotification(
+                        savedRequest
+                                .getEmployee()
+                                .getEmail(),
+
+                        savedRequest.getAsset() != null
+                                ? savedRequest
+                                .getAsset()
+                                .getName()
+                                : "asset",
+
+                        request.getRejectionReason()
+                );
 
         return toResponse(savedRequest);
     }
@@ -274,11 +394,23 @@ public class AssetRequestServiceImpl implements AssetRequestService {
     public List<AssetRequestResponse> getApprovedRequests() {
 
         return assetRequestRepository
-                .findByStatus(RequestStatus.APPROVED)
+                .findByStatus(
+                        RequestStatus.APPROVED
+                )
                 .stream()
                 .filter(request ->
-                        request.getAsset() != null &&
-                                request.getAsset().getStatus() ==
+                        request.getEmployee() != null
+                                &&
+                                request.getEmployee()
+                                        .getStatus()
+                                        ==
+                                        EmployeeStatus.ACTIVE
+                                &&
+                                request.getAsset() != null
+                                &&
+                                request.getAsset()
+                                        .getStatus()
+                                        ==
                                         AssetStatus.AVAILABLE
                 )
                 .map(this::toResponse)
@@ -296,7 +428,8 @@ public class AssetRequestServiceImpl implements AssetRequestService {
     ) {
 
         AssetRequest assetRequest =
-                assetRequestRepository.findById(requestId)
+                assetRequestRepository
+                        .findById(requestId)
                         .orElseThrow(() ->
                                 new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
@@ -304,20 +437,28 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                                 )
                         );
 
-        if (assetRequest.getStatus() != RequestStatus.APPROVED) {
+        if (assetRequest.getStatus() !=
+                RequestStatus.APPROVED) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Only APPROVED requests can be assigned"
             );
         }
 
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Admin not found"
-                        )
-                );
+        // -----------------------------------------------------
+        // Check admin
+        // -----------------------------------------------------
+
+        User admin =
+                userRepository
+                        .findById(adminId)
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Admin not found"
+                                )
+                        );
 
         if (admin.getRole() == null ||
                 !"ADMIN".equalsIgnoreCase(
@@ -330,37 +471,81 @@ public class AssetRequestServiceImpl implements AssetRequestService {
             );
         }
 
-        Employee employee = employeeRepository
-                .findById(assetRequest.getEmployee().getId())
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Employee not found"
+        // -----------------------------------------------------
+        // Find employee
+        // -----------------------------------------------------
+
+        Employee employee =
+                employeeRepository
+                        .findById(
+                                assetRequest
+                                        .getEmployee()
+                                        .getId()
                         )
-                );
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Employee not found"
+                                )
+                        );
+
+        // -----------------------------------------------------
+        // INACTIVE EMPLOYEE CANNOT RECEIVE ASSET
+        // -----------------------------------------------------
+
+        if (employee.getStatus() !=
+                EmployeeStatus.ACTIVE) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Cannot assign an asset to an inactive employee"
+            );
+        }
+
+        // -----------------------------------------------------
+        // Find asset
+        // -----------------------------------------------------
 
         if (assetRequest.getAsset() == null) {
+
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Asset is not associated with this request"
             );
         }
 
-        Asset asset = assetRepository
-                .findById(assetRequest.getAsset().getId())
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Asset not found"
+        Asset asset =
+                assetRepository
+                        .findById(
+                                assetRequest
+                                        .getAsset()
+                                        .getId()
                         )
-                );
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Asset not found"
+                                )
+                        );
 
-        if (asset.getStatus() != AssetStatus.AVAILABLE) {
+        // -----------------------------------------------------
+        // ONLY AVAILABLE ASSET CAN BE ASSIGNED
+        //
+        // RETIRED cannot pass this check.
+        // -----------------------------------------------------
+
+        if (asset.getStatus() !=
+                AssetStatus.AVAILABLE) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Asset is not available for assignment"
             );
         }
+
+        // -----------------------------------------------------
+        // Prevent duplicate active assignment
+        // -----------------------------------------------------
 
         boolean alreadyAssigned =
                 assetAssignmentRepository
@@ -370,11 +555,16 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                         );
 
         if (alreadyAssigned) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Asset is already assigned to another employee"
             );
         }
+
+        // -----------------------------------------------------
+        // Create assignment
+        // -----------------------------------------------------
 
         AssetAssignment assignment =
                 new AssetAssignment(
@@ -385,21 +575,46 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                 );
 
         AssetAssignment savedAssignment =
-                assetAssignmentRepository.save(assignment);
+                assetAssignmentRepository.save(
+                        assignment
+                );
 
-        asset.setStatus(AssetStatus.ASSIGNED);
-        assetRepository.save(asset);
+        // -----------------------------------------------------
+        // Asset becomes ASSIGNED
+        // -----------------------------------------------------
 
-        assetRequest.setStatus(RequestStatus.ASSIGNED);
-        assetRequestRepository.save(assetRequest);
-
-        notificationService.sendAssetAssignedNotification(
-                employee.getEmail(),
-                asset.getName(),
-                asset.getAssetCode()
+        asset.setStatus(
+                AssetStatus.ASSIGNED
         );
 
-        return toAssignmentResponse(savedAssignment);
+        assetRepository.save(asset);
+
+        // -----------------------------------------------------
+        // Request becomes ASSIGNED
+        // -----------------------------------------------------
+
+        assetRequest.setStatus(
+                RequestStatus.ASSIGNED
+        );
+
+        assetRequestRepository.save(
+                assetRequest
+        );
+
+        // -----------------------------------------------------
+        // Notification
+        // -----------------------------------------------------
+
+        notificationService
+                .sendAssetAssignedNotification(
+                        employee.getEmail(),
+                        asset.getName(),
+                        asset.getAssetCode()
+                );
+
+        return toAssignmentResponse(
+                savedAssignment
+        );
     }
 
     // =========================================================
@@ -414,7 +629,8 @@ public class AssetRequestServiceImpl implements AssetRequestService {
     ) {
 
         AssetAssignment assignment =
-                assetAssignmentRepository.findById(assignmentId)
+                assetAssignmentRepository
+                        .findById(assignmentId)
                         .orElseThrow(() ->
                                 new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
@@ -422,32 +638,65 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                                 )
                         );
 
-        if (!assignment.getEmployee().getId().equals(employeeId)) {
+        // -----------------------------------------------------
+        // Employee can only return their own asset
+        // -----------------------------------------------------
+
+        if (!assignment
+                .getEmployee()
+                .getId()
+                .equals(employeeId)) {
+
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "You can only request return for your own asset"
             );
         }
 
-        if (assignment.getStatus() != AssignmentStatus.ACTIVE) {
+        // -----------------------------------------------------
+        // Only ACTIVE assignment can request return
+        // -----------------------------------------------------
+
+        if (assignment.getStatus() !=
+                AssignmentStatus.ACTIVE) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Only ACTIVE assignments can request a return"
             );
         }
 
+        // -----------------------------------------------------
+        // Return request
+        // -----------------------------------------------------
+
         assignment.setStatus(
                 AssignmentStatus.RETURN_REQUESTED
         );
 
-        assignment.setReturnNote(
-                request.getReturnNote()
-        );
+        if (request != null) {
+
+            assignment.setReturnNote(
+                    request.getReturnNote()
+            );
+        }
+
+        /*
+         * IMPORTANT:
+         *
+         * Asset remains ASSIGNED.
+         *
+         * Employee still physically has it.
+         */
 
         AssetAssignment savedAssignment =
-                assetAssignmentRepository.save(assignment);
+                assetAssignmentRepository.save(
+                        assignment
+                );
 
-        return toAssignmentResponse(savedAssignment);
+        return toAssignmentResponse(
+                savedAssignment
+        );
     }
 
     // =========================================================
@@ -462,7 +711,8 @@ public class AssetRequestServiceImpl implements AssetRequestService {
     ) {
 
         AssetAssignment assignment =
-                assetAssignmentRepository.findById(assignmentId)
+                assetAssignmentRepository
+                        .findById(assignmentId)
                         .orElseThrow(() ->
                                 new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
@@ -470,13 +720,19 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                                 )
                         );
 
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Admin not found"
-                        )
-                );
+        // -----------------------------------------------------
+        // Check admin
+        // -----------------------------------------------------
+
+        User admin =
+                userRepository
+                        .findById(adminId)
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Admin not found"
+                                )
+                        );
 
         if (admin.getRole() == null ||
                 !"ADMIN".equalsIgnoreCase(
@@ -489,6 +745,10 @@ public class AssetRequestServiceImpl implements AssetRequestService {
             );
         }
 
+        // -----------------------------------------------------
+        // Only RETURN_REQUESTED can be received
+        // -----------------------------------------------------
+
         if (assignment.getStatus() !=
                 AssignmentStatus.RETURN_REQUESTED) {
 
@@ -498,22 +758,42 @@ public class AssetRequestServiceImpl implements AssetRequestService {
             );
         }
 
-        Asset asset = assetRepository
-                .findById(assignment.getAsset().getId())
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Asset not found"
-                        )
-                );
+        // -----------------------------------------------------
+        // Find asset
+        // -----------------------------------------------------
 
-        assignment.setStatus(AssignmentStatus.RETURNED);
-        assignment.setReturnedDate(LocalDate.now());
+        Asset asset =
+                assetRepository
+                        .findById(
+                                assignment
+                                        .getAsset()
+                                        .getId()
+                        )
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Asset not found"
+                                )
+                        );
+
+        // -----------------------------------------------------
+        // Assignment becomes RETURNED
+        // -----------------------------------------------------
+
+        assignment.setStatus(
+                AssignmentStatus.RETURNED
+        );
+
+        assignment.setReturnedDate(
+                LocalDate.now()
+        );
 
         /*
-         * Keep the employee's return note if one already exists.
-         * If the admin supplies a note, replace it.
+         * Keep employee return note.
+         *
+         * Admin can replace it with another note.
          */
+
         if (request != null &&
                 request.getReturnNote() != null &&
                 !request.getReturnNote().isBlank()) {
@@ -524,18 +804,48 @@ public class AssetRequestServiceImpl implements AssetRequestService {
         }
 
         AssetAssignment savedAssignment =
-                assetAssignmentRepository.save(assignment);
+                assetAssignmentRepository.save(
+                        assignment
+                );
 
-        asset.setStatus(AssetStatus.AVAILABLE);
-        assetRepository.save(asset);
+        // -----------------------------------------------------
+        // Asset becomes AVAILABLE
+        // -----------------------------------------------------
 
-        notificationService.sendAssetReturnedNotification(
-                savedAssignment.getEmployee().getEmail(),
-                asset.getName(),
-                asset.getAssetCode()
+        /*
+         * At this point the asset is physically back
+         * with the admin.
+         *
+         * Therefore:
+         *
+         * AssignmentStatus = RETURNED
+         * AssetStatus       = AVAILABLE
+         */
+
+        asset.setStatus(
+                AssetStatus.AVAILABLE
         );
 
-        return toAssignmentResponse(savedAssignment);
+        assetRepository.save(asset);
+
+        // -----------------------------------------------------
+        // Notification
+        // -----------------------------------------------------
+
+        notificationService
+                .sendAssetReturnedNotification(
+                        savedAssignment
+                                .getEmployee()
+                                .getEmail(),
+
+                        asset.getName(),
+
+                        asset.getAssetCode()
+                );
+
+        return toAssignmentResponse(
+                savedAssignment
+        );
     }
 
     // =========================================================
@@ -544,9 +854,11 @@ public class AssetRequestServiceImpl implements AssetRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AssetAssignmentResponse> getAssignmentHistory() {
+    public List<AssetAssignmentResponse>
+    getAssignmentHistory() {
 
-        return assetAssignmentRepository.findAll()
+        return assetAssignmentRepository
+                .findAll()
                 .stream()
                 .map(this::toAssignmentResponse)
                 .toList();
@@ -558,14 +870,18 @@ public class AssetRequestServiceImpl implements AssetRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public AssetRequestResponse getRequestById(Long id) {
+    public AssetRequestResponse getRequestById(
+            Long id
+    ) {
 
         AssetRequest assetRequest =
-                assetRequestRepository.findById(id)
+                assetRequestRepository
+                        .findById(id)
                         .orElseThrow(() ->
                                 new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
-                                        "Asset request not found with id: " + id
+                                        "Asset request not found with id: "
+                                                + id
                                 )
                         );
 
@@ -578,7 +894,8 @@ public class AssetRequestServiceImpl implements AssetRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AssetAssignmentResponse> getMyAssignedAssets(
+    public List<AssetAssignmentResponse>
+    getMyAssignedAssets(
             Long employeeId
     ) {
 
@@ -602,12 +919,14 @@ public class AssetRequestServiceImpl implements AssetRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public AssetAssignmentResponse getAssignmentById(
+    public AssetAssignmentResponse
+    getAssignmentById(
             Long assignmentId
     ) {
 
         AssetAssignment assignment =
-                assetAssignmentRepository.findById(assignmentId)
+                assetAssignmentRepository
+                        .findById(assignmentId)
                         .orElseThrow(() ->
                                 new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
@@ -615,27 +934,38 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                                 )
                         );
 
-        return toAssignmentResponse(assignment);
+        return toAssignmentResponse(
+                assignment
+        );
     }
 
     // =========================================================
-    // MAPPERS
+    // MAP ASSIGNMENT RESPONSE
     // =========================================================
 
-    private AssetAssignmentResponse toAssignmentResponse(
+    private AssetAssignmentResponse
+    toAssignmentResponse(
             AssetAssignment assignment
     ) {
 
         return new AssetAssignmentResponse(
                 assignment.getId(),
 
-                assignment.getAsset().getId(),
+                assignment
+                        .getAsset()
+                        .getId(),
 
-                assignment.getAsset().getAssetCode(),
+                assignment
+                        .getAsset()
+                        .getAssetCode(),
 
-                assignment.getAsset().getName(),
+                assignment
+                        .getAsset()
+                        .getName(),
 
-                assignment.getEmployee().getId(),
+                assignment
+                        .getEmployee()
+                        .getId(),
 
                 assignment.getAssignedDate(),
 
@@ -644,55 +974,86 @@ public class AssetRequestServiceImpl implements AssetRequestService {
                 assignment.getStatus(),
 
                 assignment.getAssignedBy() != null
-                        ? assignment.getAssignedBy().getId()
+                        ? assignment
+                        .getAssignedBy()
+                        .getId()
                         : null,
 
                 assignment.getReturnNote()
         );
     }
 
+    // =========================================================
+    // MAP REQUEST RESPONSE
+    // =========================================================
+
     private AssetRequestResponse toResponse(
             AssetRequest request
     ) {
 
-        AssignmentStatus assignmentStatus = null;
+        AssignmentStatus assignmentStatus =
+                null;
 
         if (request.getAsset() != null) {
 
-            assignmentStatus = assetAssignmentRepository
-                    .findByEmployeeId(
-                            request.getEmployee().getId()
-                    )
-                    .stream()
-                    .filter(assignment ->
-                            assignment.getAsset().getId()
-                                    .equals(
-                                            request.getAsset().getId()
-                                    )
-                    )
-                    .max(
-                            Comparator.comparing(
-                                    AssetAssignment::getId
+            assignmentStatus =
+                    assetAssignmentRepository
+                            .findByEmployeeId(
+                                    request
+                                            .getEmployee()
+                                            .getId()
                             )
-                    )
-                    .map(AssetAssignment::getStatus)
-                    .orElse(null);
+                            .stream()
+                            .filter(assignment ->
+                                    assignment
+                                            .getAsset()
+                                            .getId()
+                                            .equals(
+                                                    request
+                                                            .getAsset()
+                                                            .getId()
+                                            )
+                            )
+                            .max(
+                                    Comparator.comparing(
+                                            AssetAssignment::getId
+                                    )
+                            )
+                            .map(
+                                    AssetAssignment::getStatus
+                            )
+                            .orElse(null);
         }
 
         return new AssetRequestResponse(
                 request.getId(),
-                request.getEmployee().getId(),
+
+                request
+                        .getEmployee()
+                        .getId(),
+
                 request.getAsset() != null
-                        ? request.getAsset().getId()
+                        ? request
+                        .getAsset()
+                        .getId()
                         : null,
+
                 request.getRequestDate(),
+
                 request.getReason(),
+
                 request.getStatus(),
+
                 assignmentStatus,
+
                 request.getApprovedBy() != null
-                        ? request.getApprovedBy().getId()
+                        ? request
+                        .getApprovedBy()
+                        .getId()
                         : null,
+
                 request.getApprovedAt(),
+
                 request.getRejectionReason()
         );
     }

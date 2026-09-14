@@ -148,12 +148,6 @@ public class ReportServiceImpl
                         )
                 )
 
-                .cancelled(
-                        countMaintenance(
-                                MaintenanceStatus.CANCELLED
-                        )
-                )
-
                 .totalRepairCost(
                         calculateRepairCost()
                 )

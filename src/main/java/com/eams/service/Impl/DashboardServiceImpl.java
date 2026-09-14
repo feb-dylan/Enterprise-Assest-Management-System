@@ -304,15 +304,6 @@ public class DashboardServiceImpl
         );
 
 
-        response.setCancelledMaintenance(
-                maintenanceRepository
-                        .findByStatus(
-                                MaintenanceStatus.CANCELLED
-                        )
-                        .size()
-        );
-
-
         response.setMaintenanceAssets(
                 assetRepository
                         .findByStatus(
@@ -455,12 +446,6 @@ public class DashboardServiceImpl
         response.setCompletedMaintenance(
                 countMaintenance(
                         MaintenanceStatus.COMPLETED
-                )
-        );
-
-        response.setCancelledMaintenance(
-                countMaintenance(
-                        MaintenanceStatus.CANCELLED
                 )
         );
 

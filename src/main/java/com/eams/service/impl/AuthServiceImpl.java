@@ -1,21 +1,23 @@
 package com.eams.service.impl;
 
+import com.eams.dto.request.LoginRequest;
 import com.eams.dto.request.RegisterRequest;
+import com.eams.dto.response.LoginResponse;
+import com.eams.entity.Employee;
+import com.eams.entity.EmployeeStatus;
 import com.eams.entity.Role;
 import com.eams.entity.User;
+import com.eams.repository.EmployeeRepository;
 import com.eams.repository.RoleRepository;
 import com.eams.repository.UserRepository;
+import com.eams.security.JwtService;
 import com.eams.service.AuthService;
-import com.eams.service.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.eams.dto.request.LoginRequest;
-import com.eams.dto.response.LoginResponse;
-import com.eams.security.JwtService;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 @RequiredArgsConstructor
@@ -24,61 +26,140 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final EmployeeRepository employeeRepository;
+
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+
+    // =========================================================
+    // REGISTER
+    // =========================================================
 
     @Override
     public void register(RegisterRequest request) {
 
-        // 1. Check whether email already exists
+        // -----------------------------------------------------
+        // 1. Check email
+        // -----------------------------------------------------
+
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already exists");
+
+            throw new RuntimeException(
+                    "Email already exists"
+            );
         }
 
-        // 2. Find default role
-        Role employeeRole = roleRepository.findByName("EMPLOYEE")
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "EMPLOYEE role not found"
-                        ));
+        // -----------------------------------------------------
+        // 2. Find default EMPLOYEE role
+        // -----------------------------------------------------
 
+        Role employeeRole =
+                roleRepository
+                        .findByName("EMPLOYEE")
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "EMPLOYEE role not found"
+                                )
+                        );
+
+        // -----------------------------------------------------
         // 3. Create user
+        // -----------------------------------------------------
+
         User user = User.builder()
                 .email(request.email())
                 .password(
-                        passwordEncoder.encode(request.password())
+                        passwordEncoder.encode(
+                                request.password()
+                        )
                 )
                 .role(employeeRole)
                 .enabled(true)
-                .emailVerified(false)
+                .emailVerified(true)
                 .build();
 
-        // 4. Save user first
-        User savedUser = userRepository.save(user);
+        // -----------------------------------------------------
+        // 4. Save
+        // -----------------------------------------------------
 
-        // 5. Create verification token and send email
-        emailVerificationService
-                .createAndSendVerificationToken(savedUser.getId());
+        userRepository.save(user);
     }
-    @Override
-    public LoginResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password")
-                );
+    // =========================================================
+    // LOGIN
+    // =========================================================
+
+    @Override
+    public LoginResponse login(
+            LoginRequest request) {
+
+        // -----------------------------------------------------
+        // 1. Find user
+        // -----------------------------------------------------
+
+        User user =
+                userRepository
+                        .findByEmail(request.email())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Invalid email or password"
+                                )
+                        );
+
+        // -----------------------------------------------------
+        // 2. Check USER account enabled
+        // -----------------------------------------------------
 
         if (!user.isEnabled()) {
-            throw new RuntimeException("Account is disabled");
-        }
 
-        if (!user.isEmailVerified()) {
             throw new RuntimeException(
-                    "Please verify your email before logging in"
+                    "Account is disabled"
             );
         }
+
+        // -----------------------------------------------------
+        // 3. Check EMPLOYEE status
+        //
+        // Only employees have EmployeeStatus.
+        //
+        // MANAGER / ADMIN are not blocked by employee status.
+        // -----------------------------------------------------
+
+        if (user.getRole() != null &&
+                "EMPLOYEE".equalsIgnoreCase(
+                        user.getRole().getName()
+                )) {
+
+            Employee employee =
+                    employeeRepository
+                            .findByUserEmail(
+                                    user.getEmail()
+                            )
+                            .orElse(null);
+
+            /*
+             * If employee profile exists and is INACTIVE,
+             * login is blocked.
+             *
+             * If profile does not exist yet, login is allowed
+             * because the employee may still need to create
+             * their employee profile.
+             */
+
+            if (employee != null &&
+                    employee.getStatus() ==
+                            EmployeeStatus.INACTIVE) {
+
+                throw new RuntimeException(
+                        "Your employee account is inactive"
+                );
+            }
+        }
+
+        // -----------------------------------------------------
+        // 4. Authenticate email + password
+        // -----------------------------------------------------
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -87,7 +168,16 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
-        String token = jwtService.generateToken(user);
+        // -----------------------------------------------------
+        // 5. Generate JWT
+        // -----------------------------------------------------
+
+        String token =
+                jwtService.generateToken(user);
+
+        // -----------------------------------------------------
+        // 6. Return login response
+        // -----------------------------------------------------
 
         return new LoginResponse(
                 token,
@@ -95,25 +185,69 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole().getName()
         );
     }
+
+    // =========================================================
+    // CHANGE PASSWORD
+    // =========================================================
+
     @Override
     public void changePassword(
             String email,
             String currentPassword,
             String newPassword
     ) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Current password is incorrect");
-        }
+        // -----------------------------------------------------
+        // 1. Find current user
+        // -----------------------------------------------------
 
-        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
+
+        // -----------------------------------------------------
+        // 2. Verify current password
+        // -----------------------------------------------------
+
+        if (!passwordEncoder.matches(
+                currentPassword,
+                user.getPassword()
+        )) {
+
             throw new IllegalArgumentException(
-                    "New password must be different from current password");
+                    "Current password is incorrect"
+            );
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
+        // -----------------------------------------------------
+        // 3. New password cannot be same
+        // -----------------------------------------------------
+
+        if (passwordEncoder.matches(
+                newPassword,
+                user.getPassword()
+        )) {
+
+            throw new IllegalArgumentException(
+                    "New password must be different from current password"
+            );
+        }
+
+        // -----------------------------------------------------
+        // 4. Save new password
+        // -----------------------------------------------------
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        newPassword
+                )
+        );
+
         userRepository.save(user);
     }
 }

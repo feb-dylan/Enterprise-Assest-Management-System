@@ -3,9 +3,16 @@ package com.eams.service.impl;
 import com.eams.dto.request.EmployeeProfileRequest;
 import com.eams.dto.request.EmployeeRequest;
 import com.eams.dto.response.EmployeeResponse;
+import com.eams.entity.AssetAssignment;
+import com.eams.entity.AssignmentStatus;
 import com.eams.entity.Department;
 import com.eams.entity.Employee;
+import com.eams.entity.EmployeeStatus;
+import com.eams.entity.AssetRequest;
+import com.eams.entity.RequestStatus;
 import com.eams.entity.User;
+import com.eams.repository.AssetAssignmentRepository;
+import com.eams.repository.AssetRequestRepository;
 import com.eams.repository.DepartmentRepository;
 import com.eams.repository.EmployeeRepository;
 import com.eams.repository.UserRepository;
@@ -20,6 +27,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -29,18 +38,31 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
 
+    // Asset lifecycle repositories
+    private final AssetAssignmentRepository assetAssignmentRepository;
+    private final AssetRequestRepository assetRequestRepository;
+
+    // =========================================================
+    // CREATE CURRENT EMPLOYEE
+    // =========================================================
+
     @Override
-    public EmployeeResponse createCurrentEmployee(EmployeeRequest request) {
+    public EmployeeResponse createCurrentEmployee(
+            EmployeeRequest request) {
 
         Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
 
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "User not found: " + email
-                ));
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "User not found: " + email
+                        )
+                );
 
         if (employeeRepository.existsByUserId(user.getId())) {
             throw new IllegalArgumentException(
@@ -48,19 +70,26 @@ public class EmployeeServiceImpl implements EmployeeService {
             );
         }
 
-        String employeeCode = request.getEmployeeCode().trim();
+        String employeeCode =
+                request.getEmployeeCode().trim();
 
-        if (employeeRepository.existsByEmployeeCode(employeeCode)) {
+        if (employeeRepository.existsByEmployeeCode(
+                employeeCode)) {
+
             throw new IllegalArgumentException(
                     "Employee code already exists"
             );
         }
 
-        Department department = departmentRepository
-                .findById(request.getDepartmentId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Department not found: " + request.getDepartmentId()
-                ));
+        Department department =
+                departmentRepository
+                        .findById(request.getDepartmentId())
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Department not found: "
+                                                + request.getDepartmentId()
+                                )
+                        );
 
         Employee employee = new Employee(
                 employeeCode,
@@ -78,27 +107,40 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setStatus(request.getStatus());
         }
 
-        Employee savedEmployee = employeeRepository.save(employee);
+        Employee savedEmployee =
+                employeeRepository.save(employee);
 
         return mapToResponse(savedEmployee);
     }
 
+    // =========================================================
+    // CREATE EMPLOYEE
+    // =========================================================
+
     @Override
-    public EmployeeResponse createEmployee(EmployeeRequest request) {
+    public EmployeeResponse createEmployee(
+            EmployeeRequest request) {
 
-        String employeeCode = request.getEmployeeCode().trim();
+        String employeeCode =
+                request.getEmployeeCode().trim();
 
-        if (employeeRepository.existsByEmployeeCode(employeeCode)) {
+        if (employeeRepository.existsByEmployeeCode(
+                employeeCode)) {
+
             throw new IllegalArgumentException(
                     "Employee code already exists"
             );
         }
 
-        Department department = departmentRepository
-                .findById(request.getDepartmentId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Department not found: " + request.getDepartmentId()
-                ));
+        Department department =
+                departmentRepository
+                        .findById(request.getDepartmentId())
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Department not found: "
+                                                + request.getDepartmentId()
+                                )
+                        );
 
         Employee employee = new Employee(
                 employeeCode,
@@ -117,24 +159,35 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         if (request.getUserId() != null) {
 
-            if (employeeRepository.existsByUserId(request.getUserId())) {
+            if (employeeRepository.existsByUserId(
+                    request.getUserId())) {
+
                 throw new IllegalArgumentException(
                         "User is already linked to another employee"
                 );
             }
 
-            User user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "User not found: " + request.getUserId()
-                    ));
+            User user = userRepository
+                    .findById(request.getUserId())
+                    .orElseThrow(() ->
+                            new EntityNotFoundException(
+                                    "User not found: "
+                                            + request.getUserId()
+                            )
+                    );
 
             employee.setUser(user);
         }
 
-        Employee savedEmployee = employeeRepository.save(employee);
+        Employee savedEmployee =
+                employeeRepository.save(employee);
 
         return mapToResponse(savedEmployee);
     }
+
+    // =========================================================
+    // GET ALL EMPLOYEES
+    // =========================================================
 
     @Override
     @Transactional(readOnly = true)
@@ -144,77 +197,135 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         validatePageAndSize(page, size);
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable =
+                PageRequest.of(page, size);
 
         return employeeRepository
                 .findAll(pageable)
                 .map(this::mapToResponse);
     }
 
+    // =========================================================
+    // GET EMPLOYEE BY ID
+    // =========================================================
+
     @Override
     @Transactional(readOnly = true)
-    public EmployeeResponse getEmployeeById(Long id) {
+    public EmployeeResponse getEmployeeById(
+            Long id) {
 
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Employee not found: " + id
-                ));
+        Employee employee =
+                employeeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Employee not found: " + id
+                                )
+                        );
 
         return mapToResponse(employee);
     }
+
+    // =========================================================
+    // UPDATE EMPLOYEE
+    // =========================================================
 
     @Override
     public EmployeeResponse updateEmployee(
             Long id,
             EmployeeRequest request) {
 
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Employee not found: " + id
-                ));
+        Employee employee =
+                employeeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Employee not found: " + id
+                                )
+                        );
 
-        String employeeCode = request.getEmployeeCode().trim();
+        // Keep old status so we can detect:
+        // ACTIVE -> INACTIVE
+        EmployeeStatus oldStatus =
+                employee.getStatus();
 
-        employeeRepository.findByEmployeeCode(employeeCode)
-                .filter(existing -> !existing.getId().equals(id))
+        String employeeCode =
+                request.getEmployeeCode().trim();
+
+        employeeRepository
+                .findByEmployeeCode(employeeCode)
+                .filter(existing ->
+                        !existing.getId().equals(id))
                 .ifPresent(existing -> {
                     throw new IllegalArgumentException(
                             "Employee code already exists"
                     );
                 });
 
-        Department department = departmentRepository
-                .findById(request.getDepartmentId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Department not found: " + request.getDepartmentId()
-                ));
+        Department department =
+                departmentRepository
+                        .findById(request.getDepartmentId())
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Department not found: "
+                                                + request.getDepartmentId()
+                                )
+                        );
 
         employee.setEmployeeCode(employeeCode);
-        employee.setFirstName(request.getFirstName().trim());
-        employee.setLastName(request.getLastName().trim());
-        employee.setPhone(request.getPhone());
-        employee.setDepartment(department);
-        employee.setPosition(request.getPosition());
-        employee.setHireDate(request.getHireDate());
+
+        employee.setFirstName(
+                request.getFirstName().trim()
+        );
+
+        employee.setLastName(
+                request.getLastName().trim()
+        );
+
+        employee.setPhone(
+                request.getPhone()
+        );
+
+        employee.setDepartment(
+                department
+        );
+
+        employee.setPosition(
+                request.getPosition()
+        );
+
+        employee.setHireDate(
+                request.getHireDate()
+        );
 
         if (request.getStatus() != null) {
-            employee.setStatus(request.getStatus());
+            employee.setStatus(
+                    request.getStatus()
+            );
         }
+
+        // -----------------------------------------------------
+        // USER LINK
+        // -----------------------------------------------------
 
         if (request.getUserId() != null) {
 
-            employeeRepository.findByUserId(request.getUserId())
-                    .filter(existing -> !existing.getId().equals(id))
+            employeeRepository
+                    .findByUserId(request.getUserId())
+                    .filter(existing ->
+                            !existing.getId().equals(id))
                     .ifPresent(existing -> {
                         throw new IllegalArgumentException(
                                 "User is already linked to another employee"
                         );
                     });
 
-            User user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "User not found: " + request.getUserId()
-                    ));
+            User user = userRepository
+                    .findById(request.getUserId())
+                    .orElseThrow(() ->
+                            new EntityNotFoundException(
+                                    "User not found: "
+                                            + request.getUserId()
+                            )
+                    );
 
             employee.setUser(user);
 
@@ -222,29 +333,146 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setUser(null);
         }
 
-        return mapToResponse(employee);
+        // -----------------------------------------------------
+        // SAVE EMPLOYEE
+        // -----------------------------------------------------
+
+        Employee savedEmployee =
+                employeeRepository.save(employee);
+
+        // -----------------------------------------------------
+        // HANDLE ACTIVE -> INACTIVE
+        // -----------------------------------------------------
+
+        EmployeeStatus newStatus =
+                savedEmployee.getStatus();
+
+        if (newStatus == EmployeeStatus.INACTIVE &&
+                oldStatus != EmployeeStatus.INACTIVE) {
+
+            handleEmployeeBecomingInactive(
+                    savedEmployee
+            );
+        }
+
+        return mapToResponse(savedEmployee);
     }
+
+    // =========================================================
+    // HANDLE EMPLOYEE BECOMING INACTIVE
+    //
+    // Rules:
+    //
+    // 1. ACTIVE assignments
+    //      -> RETURN_REQUESTED
+    //
+    // 2. Asset remains ASSIGNED
+    //
+    // 3. PENDING requests
+    //      -> REJECTED
+    //
+    // 4. APPROVED requests
+    //      -> REJECTED
+    //
+    // 5. Already ASSIGNED requests
+    //      -> unchanged
+    // =========================================================
+
+    private void handleEmployeeBecomingInactive(
+            Employee employee) {
+
+        // -----------------------------------------------------
+        // 1. Change active assignments to RETURN_REQUESTED
+        // -----------------------------------------------------
+
+        List<AssetAssignment> assignments =
+                assetAssignmentRepository
+                        .findByEmployeeId(
+                                employee.getId()
+                        );
+
+        for (AssetAssignment assignment : assignments) {
+
+            if (assignment.getStatus() ==
+                    AssignmentStatus.ACTIVE) {
+
+                assignment.setStatus(
+                        AssignmentStatus.RETURN_REQUESTED
+                );
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * We DO NOT change the asset status here.
+                 *
+                 * The employee still physically has
+                 * the asset.
+                 *
+                 * Therefore:
+                 *
+                 * AssetStatus = ASSIGNED
+                 * AssignmentStatus = RETURN_REQUESTED
+                 */
+
+                assetAssignmentRepository.save(
+                        assignment
+                );
+            }
+        }
+
+        // -----------------------------------------------------
+        // 2. Reject pending/approved requests
+        // -----------------------------------------------------
+
+        List<AssetRequest> requests =
+                assetRequestRepository
+                        .findByEmployeeId(
+                                employee.getId()
+                        );
+
+        for (AssetRequest request : requests) {
+
+            if (request.getStatus() ==
+                    RequestStatus.PENDING
+                    ||
+                    request.getStatus() ==
+                            RequestStatus.APPROVED) {
+
+                request.setStatus(
+                        RequestStatus.REJECTED
+                );
+
+                request.setRejectionReason(
+                        "Employee is inactive"
+                );
+
+                assetRequestRepository.save(
+                        request
+                );
+            }
+        }
+    }
+
+    // =========================================================
+    // DELETE EMPLOYEE
+    // =========================================================
 
     @Override
     public void deleteEmployee(Long id) {
 
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Employee not found: " + id
-                ));
+        Employee employee =
+                employeeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Employee not found: " + id
+                                )
+                        );
 
         employeeRepository.delete(employee);
     }
 
     // =========================================================
     // SEARCH EMPLOYEES
-    // Supports:
-    // - First name
-    // - Last name
-    // - Employee code
-    // - First name + last name
-    // - Last name + first name
-    // - Case-insensitive search
     // =========================================================
 
     @Override
@@ -257,17 +485,23 @@ public class EmployeeServiceImpl implements EmployeeService {
         validatePageAndSize(page, size);
 
         String searchKeyword =
-                keyword == null ? "" : keyword.trim();
+                keyword == null
+                        ? ""
+                        : keyword.trim();
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable =
+                PageRequest.of(page, size);
 
         return employeeRepository
-                .searchEmployees(searchKeyword, pageable)
+                .searchEmployees(
+                        searchKeyword,
+                        pageable
+                )
                 .map(this::mapToResponse);
     }
 
     // =========================================================
-    // CURRENT EMPLOYEE
+    // GET CURRENT EMPLOYEE
     // =========================================================
 
     @Override
@@ -275,38 +509,59 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeResponse getCurrentEmployee() {
 
         Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
 
         String email = authentication.getName();
 
-        Employee employee = employeeRepository.findByUserEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Employee profile not found for user: " + email
-                ));
+        Employee employee =
+                employeeRepository
+                        .findByUserEmail(email)
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Employee profile not found "
+                                                + "for user: " + email
+                                )
+                        );
 
         return mapToResponse(employee);
     }
+
+    // =========================================================
+    // UPDATE CURRENT EMPLOYEE PROFILE
+    // =========================================================
 
     @Override
     public EmployeeResponse updateCurrentEmployee(
             EmployeeProfileRequest request) {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        String email =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getName();
 
-        Employee employee = employeeRepository.findByUserEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Employee profile not found for user: " + email
-                ));
+        Employee employee =
+                employeeRepository
+                        .findByUserEmail(email)
+                        .orElseThrow(() ->
+                                new EntityNotFoundException(
+                                        "Employee profile not found "
+                                                + "for user: " + email
+                                )
+                        );
 
         if (request.getPhone() != null) {
-            employee.setPhone(request.getPhone());
+            employee.setPhone(
+                    request.getPhone()
+            );
         }
 
         if (request.getPosition() != null) {
-            employee.setPosition(request.getPosition());
+            employee.setPosition(
+                    request.getPosition()
+            );
         }
 
         employeeRepository.save(employee);
@@ -315,41 +570,85 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     // =========================================================
-    // MAPPER
+    // MAP ENTITY TO RESPONSE
     // =========================================================
 
-    private EmployeeResponse mapToResponse(Employee employee) {
+    private EmployeeResponse mapToResponse(
+            Employee employee) {
 
-        EmployeeResponse response = new EmployeeResponse();
+        EmployeeResponse response =
+                new EmployeeResponse();
 
-        response.setId(employee.getId());
+        response.setId(
+                employee.getId()
+        );
 
+        // User information
         if (employee.getUser() != null) {
-            response.setUserId(employee.getUser().getId());
+
+            response.setUserId(
+                    employee.getUser().getId()
+            );
         }
 
-        response.setEmployeeCode(employee.getEmployeeCode());
-        response.setFirstName(employee.getFirstName());
-        response.setLastName(employee.getLastName());
-        response.setPhone(employee.getPhone());
-
-        response.setDepartmentId(
-                employee.getDepartment().getId()
+        response.setEmployeeCode(
+                employee.getEmployeeCode()
         );
 
-        response.setDepartmentName(
-                employee.getDepartment().getName()
+        response.setFirstName(
+                employee.getFirstName()
         );
 
-        response.setPosition(employee.getPosition());
-        response.setHireDate(employee.getHireDate());
-        response.setStatus(employee.getStatus());
-        response.setCreatedAt(employee.getCreatedAt());
-        response.setUpdatedAt(employee.getUpdatedAt());
+        response.setLastName(
+                employee.getLastName()
+        );
+
+        response.setPhone(
+                employee.getPhone()
+        );
+
+        // Department information
+        if (employee.getDepartment() != null) {
+
+            response.setDepartmentId(
+                    employee.getDepartment().getId()
+            );
+
+            response.setDepartmentName(
+                    employee.getDepartment().getName()
+            );
+        }
+
+        response.setPosition(
+                employee.getPosition()
+        );
+
+        response.setHireDate(
+                employee.getHireDate()
+        );
+
+        response.setStatus(
+                employee.getStatus()
+        );
+
+        response.setCreatedAt(
+                employee.getCreatedAt()
+        );
+
+        response.setUpdatedAt(
+                employee.getUpdatedAt()
+        );
 
         return response;
     }
-    private void validatePageAndSize(int page, int size) {
+
+    // =========================================================
+    // VALIDATE PAGE AND SIZE
+    // =========================================================
+
+    private void validatePageAndSize(
+            int page,
+            int size) {
 
         if (page < 0) {
             throw new IllegalArgumentException(
