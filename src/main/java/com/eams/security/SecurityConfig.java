@@ -473,7 +473,8 @@ public class SecurityConfig {
                                 "/api/reports/maintenance"
                         ).hasAnyRole(
                                 "ADMIN",
-                                "TECHNICIAN"
+                                "TECHNICIAN",
+                                "MANAGER"
                         )
 
                         .requestMatchers(
@@ -481,7 +482,8 @@ public class SecurityConfig {
                                 "/api/reports/damage"
                         ).hasAnyRole(
                                 "ADMIN",
-                                "TECHNICIAN"
+                                "TECHNICIAN",
+                                "MANAGER"
                         )
 
                         .requestMatchers(
