@@ -3,259 +3,123 @@ package com.eams.controller;
 import com.eams.dto.request.AssetRequestCreateRequest;
 import com.eams.dto.request.AssetRequestRejectRequest;
 import com.eams.dto.request.AssetReturnRequest;
-
 import com.eams.dto.response.AssetAssignmentResponse;
 import com.eams.dto.response.AssetRequestResponse;
-
 import com.eams.service.AssetRequestService;
-
 import jakarta.validation.Valid;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Request -> approve -> assign -> return.
+ *
+ * NEW clean URLs take no user ids (the user comes from the JWT).
+ * OLD URLs with {employeeId}/{managerId}/{adminId} still work so the current
+ * frontend keeps running, but:
+ *   - an {employeeId} must be the caller's own id (otherwise 403)
+ *   - {managerId}/{adminId} are ignored; the logged-in user is recorded
+ */
 @RestController
 @RequestMapping("/api/requests")
+@RequiredArgsConstructor
 public class AssetRequestController {
 
-    private final AssetRequestService assetRequestService;
+    private final AssetRequestService service;
 
-    public AssetRequestController(
-            AssetRequestService assetRequestService
-    ) {
-        this.assetRequestService = assetRequestService;
-    }
-
-    // =========================================================
-    // 1. EMPLOYEE CREATES REQUEST
-    // =========================================================
+    // ---------------- EMPLOYEE ----------------
 
     @PostMapping
     public ResponseEntity<AssetRequestResponse> createRequest(
-            @Valid @RequestBody AssetRequestCreateRequest request
-    ) {
-
-        AssetRequestResponse response =
-                assetRequestService.createRequest(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+            @Valid @RequestBody AssetRequestCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.createRequest(request));
     }
 
-    // =========================================================
-    // 2. EMPLOYEE VIEWS OWN REQUESTS
-    // =========================================================
-
-    @GetMapping("/my/{employeeId}")
+    @GetMapping({"/my", "/my/{employeeId}"})
     public ResponseEntity<List<AssetRequestResponse>> getMyRequests(
-            @PathVariable Long employeeId
-    ) {
-
-        List<AssetRequestResponse> responses =
-                assetRequestService.getMyRequests(employeeId);
-
-        return ResponseEntity.ok(responses);
+            @PathVariable(required = false) Long employeeId) {
+        return ResponseEntity.ok(service.getMyRequests(employeeId));
     }
 
-    // =========================================================
-    // 3. EMPLOYEE VIEWS CURRENTLY ASSIGNED ASSETS
-    // =========================================================
-
-    @GetMapping("/assignments/my/{employeeId}")
-    public ResponseEntity<List<AssetAssignmentResponse>>
-    getMyAssignedAssets(
-            @PathVariable Long employeeId
-    ) {
-
-        List<AssetAssignmentResponse> responses =
-                assetRequestService.getMyAssignedAssets(employeeId);
-
-        return ResponseEntity.ok(responses);
+    @GetMapping({"/assignments/my", "/assignments/my/{employeeId}"})
+    public ResponseEntity<List<AssetAssignmentResponse>> getMyAssignedAssets(
+            @PathVariable(required = false) Long employeeId) {
+        return ResponseEntity.ok(service.getMyAssignedAssets(employeeId));
     }
 
-    // =========================================================
-    // 4. EMPLOYEE REQUESTS ASSET RETURN
-    // =========================================================
-
-    @PutMapping(
-            "/assignments/{assignmentId}/return-request/{employeeId}"
-    )
-    public ResponseEntity<AssetAssignmentResponse>
-    requestAssetReturn(
+    @PutMapping({
+            "/assignments/{assignmentId}/return-request",
+            "/assignments/{assignmentId}/return-request/{employeeId}"})
+    public ResponseEntity<AssetAssignmentResponse> requestAssetReturn(
             @PathVariable Long assignmentId,
-            @PathVariable Long employeeId,
-            @Valid @RequestBody AssetReturnRequest request
-    ) {
-
-        AssetAssignmentResponse response =
-                assetRequestService.requestAssetReturn(
-                        assignmentId,
-                        employeeId,
-                        request
-                );
-
-        return ResponseEntity.ok(response);
+            @PathVariable(required = false) Long employeeId,
+            @Valid @RequestBody(required = false) AssetReturnRequest request) {
+        return ResponseEntity.ok(service.requestAssetReturn(assignmentId, employeeId, request));
     }
 
-    // =========================================================
-    // 5. MANAGER VIEWS PENDING REQUESTS
-    // =========================================================
+    // ---------------- MANAGER ----------------
 
     @GetMapping("/pending")
-    public ResponseEntity<List<AssetRequestResponse>>
-    getPendingRequests() {
-
-        List<AssetRequestResponse> responses =
-                assetRequestService.getPendingRequests();
-
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<AssetRequestResponse>> getPendingRequests() {
+        return ResponseEntity.ok(service.getPendingRequests());
     }
 
-    // =========================================================
-    // 6. MANAGER APPROVES REQUEST
-    // =========================================================
-
-    @PutMapping("/{requestId}/approve/{managerId}")
-    public ResponseEntity<AssetRequestResponse> approveRequest(
-            @PathVariable Long requestId,
-            @PathVariable Long managerId
-    ) {
-
-        AssetRequestResponse response =
-                assetRequestService.approveRequest(
-                        requestId,
-                        managerId
-                );
-
-        return ResponseEntity.ok(response);
+    @PutMapping({"/{requestId}/approve", "/{requestId}/approve/{ignoredManagerId}"})
+    public ResponseEntity<AssetRequestResponse> approveRequest(@PathVariable Long requestId) {
+        return ResponseEntity.ok(service.approveRequest(requestId));
     }
 
-    // =========================================================
-    // 7. MANAGER REJECTS REQUEST
-    // =========================================================
-
-    @PutMapping("/{requestId}/reject/{managerId}")
+    @PutMapping({"/{requestId}/reject", "/{requestId}/reject/{ignoredManagerId}"})
     public ResponseEntity<AssetRequestResponse> rejectRequest(
             @PathVariable Long requestId,
-            @PathVariable Long managerId,
-            @Valid @RequestBody AssetRequestRejectRequest request
-    ) {
-
-        AssetRequestResponse response =
-                assetRequestService.rejectRequest(
-                        requestId,
-                        managerId,
-                        request
-                );
-
-        return ResponseEntity.ok(response);
+            @Valid @RequestBody AssetRequestRejectRequest request) {
+        return ResponseEntity.ok(service.rejectRequest(requestId, request));
     }
 
-    // =========================================================
-    // 8. ADMIN VIEWS APPROVED REQUESTS
-    // =========================================================
+    // ---------------- ADMIN ----------------
+
+    @GetMapping
+    public ResponseEntity<List<AssetRequestResponse>> getAllRequests() {
+        return ResponseEntity.ok(service.getAllRequests());
+    }
 
     @GetMapping("/approved")
-    public ResponseEntity<List<AssetRequestResponse>>
-    getApprovedRequests() {
-
-        List<AssetRequestResponse> responses =
-                assetRequestService.getApprovedRequests();
-
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<AssetRequestResponse>> getApprovedRequests() {
+        return ResponseEntity.ok(service.getApprovedRequests());
     }
 
-    // =========================================================
-    // 9. ADMIN ASSIGNS ASSET
-    // =========================================================
-
-    @PutMapping("/{requestId}/assign/{adminId}")
+    /** For category requests pass ?assetId= to choose which unit to hand out. */
+    @PutMapping({"/{requestId}/assign", "/{requestId}/assign/{ignoredAdminId}"})
     public ResponseEntity<AssetAssignmentResponse> assignAsset(
             @PathVariable Long requestId,
-            @PathVariable Long adminId
-    ) {
-
-        AssetAssignmentResponse response =
-                assetRequestService.assignAsset(
-                        requestId,
-                        adminId
-                );
-
-        return ResponseEntity.ok(response);
+            @RequestParam(required = false) Long assetId) {
+        return ResponseEntity.ok(service.assignAsset(requestId, assetId));
     }
 
-    // =========================================================
-    // 10. ADMIN RECEIVES RETURNED ASSET
-    // =========================================================
-
-    @PutMapping(
-            "/assignments/{assignmentId}/return/{adminId}"
-    )
+    @PutMapping({
+            "/assignments/{assignmentId}/return",
+            "/assignments/{assignmentId}/return/{ignoredAdminId}"})
     public ResponseEntity<AssetAssignmentResponse> returnAsset(
             @PathVariable Long assignmentId,
-            @PathVariable Long adminId,
-            @Valid @RequestBody AssetReturnRequest request
-    ) {
-
-        AssetAssignmentResponse response =
-                assetRequestService.returnAsset(
-                        assignmentId,
-                        adminId,
-                        request
-                );
-
-        return ResponseEntity.ok(response);
+            @Valid @RequestBody(required = false) AssetReturnRequest request) {
+        return ResponseEntity.ok(service.returnAsset(assignmentId, request));
     }
-
-    // =========================================================
-    // 11. ADMIN VIEWS ASSIGNMENT HISTORY
-    // =========================================================
 
     @GetMapping("/assignments/history")
-    public ResponseEntity<List<AssetAssignmentResponse>>
-    getAssignmentHistory() {
-
-        List<AssetAssignmentResponse> responses =
-                assetRequestService.getAssignmentHistory();
-
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<AssetAssignmentResponse>> getAssignmentHistory() {
+        return ResponseEntity.ok(service.getAssignmentHistory());
     }
-
-    // =========================================================
-    // 12. GET ONE ASSIGNMENT BY ID
-    // =========================================================
 
     @GetMapping("/assignments/{assignmentId}")
-    public ResponseEntity<AssetAssignmentResponse>
-    getAssignmentById(
-            @PathVariable Long assignmentId
-    ) {
-
-        AssetAssignmentResponse response =
-                assetRequestService.getAssignmentById(
-                        assignmentId
-                );
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AssetAssignmentResponse> getAssignmentById(@PathVariable Long assignmentId) {
+        return ResponseEntity.ok(service.getAssignmentById(assignmentId));
     }
 
-    // =========================================================
-    // 13. GET ONE REQUEST BY ID
-    // =========================================================
-
     @GetMapping("/{id}")
-    public ResponseEntity<AssetRequestResponse> getRequestById(
-            @PathVariable Long id
-    ) {
-
-        AssetRequestResponse response =
-                assetRequestService.getRequestById(id);
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AssetRequestResponse> getRequestById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getRequestById(id));
     }
 }

@@ -45,6 +45,12 @@ build/
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # Java
 *.class
+# Eclipse build output (contained a copy of application.properties with secrets)
+bin/
+
+# User-uploaded files (asset images, damage photos)
+uploads/

@@ -43,4 +43,17 @@ public class DamageResponse {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private java.util.List<String> photoUrls;
+
+    // ----- AI triage -----
+    private com.eams.entity.AiTriageStatus aiStatus;
+    private String aiSeverity;
+    private String aiDamageType;
+    private String aiSuggestedAction;
+    private String aiSummary;
+    private java.math.BigDecimal aiCostMin;
+    private java.math.BigDecimal aiCostMax;
+    private Boolean aiSafetyRisk;
+    private LocalDateTime aiAnalyzedAt;
 }

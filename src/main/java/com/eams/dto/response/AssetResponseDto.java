@@ -39,4 +39,13 @@ public class AssetResponseDto {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private LocalDate warrantyExpiryDate;
+    private String vendor;
+    private com.eams.entity.DisposalMethod disposalMethod;
+    private LocalDateTime retiredAt;
+
+    /** Who currently holds this asset (null if nobody). */
+    private Long currentHolderEmployeeId;
+    private String currentHolderName;
 }

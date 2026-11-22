@@ -41,6 +41,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     // Asset lifecycle repositories
     private final AssetAssignmentRepository assetAssignmentRepository;
     private final AssetRequestRepository assetRequestRepository;
+    private final com.eams.repository.DamageReportRepository damageReportRepository;
+    private final com.eams.service.NotificationService notificationService;
 
     // =========================================================
     // CREATE CURRENT EMPLOYEE
@@ -103,9 +105,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPosition(request.getPosition());
         employee.setHireDate(request.getHireDate());
 
-        if (request.getStatus() != null) {
-            employee.setStatus(request.getStatus());
-        }
+        // Employees cannot choose their own status - a new profile is always ACTIVE.
+        employee.setStatus(EmployeeStatus.ACTIVE);
 
         Employee savedEmployee =
                 employeeRepository.save(employee);
@@ -329,9 +330,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             employee.setUser(user);
 
-        } else {
-            employee.setUser(null);
         }
+        // userId == null keeps the existing link (previously it silently unlinked the account)
 
         // -----------------------------------------------------
         // SAVE EMPLOYEE
@@ -417,6 +417,14 @@ public class EmployeeServiceImpl implements EmployeeService {
                 assetAssignmentRepository.save(
                         assignment
                 );
+
+                notificationService.notifyRole("ADMIN", "RETURN_REQUESTED",
+                        "Collect asset from deactivated employee",
+                        employee.getFirstName() + " " + employee.getLastName()
+                                + " was deactivated and still holds "
+                                + assignment.getAsset().getAssetCode() + " - "
+                                + assignment.getAsset().getName() + ".",
+                        "/admin/assignments/" + assignment.getId());
             }
         }
 
@@ -467,6 +475,21 @@ public class EmployeeServiceImpl implements EmployeeService {
                                         "Employee not found: " + id
                                 )
                         );
+
+        boolean hasHistory =
+                assetAssignmentRepository.existsByEmployeeId(id)
+                        || assetRequestRepository.existsByEmployeeId(id)
+                        || damageReportRepository.existsByEmployeeId(id);
+
+        if (hasHistory) {
+            // Soft delete: keep assignment/request/damage history for accountability.
+            if (employee.getStatus() != EmployeeStatus.INACTIVE) {
+                employee.setStatus(EmployeeStatus.INACTIVE);
+                employeeRepository.save(employee);
+                handleEmployeeBecomingInactive(employee);
+            }
+            return;
+        }
 
         employeeRepository.delete(employee);
     }

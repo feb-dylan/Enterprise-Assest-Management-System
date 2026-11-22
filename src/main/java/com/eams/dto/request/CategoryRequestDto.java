@@ -17,6 +17,11 @@ public class CategoryRequestDto {
     @Size(max = 100, message = "Category name must not exceed 100 characters")
     private String name;
 
-    @Size(max = 500, message = "Description must not exceed 255 characters")
+    @Size(max = 255, message = "Description must not exceed 255 characters")
     private String description;
+
+    /** Optional: expected useful life in months (default used when empty: 48). */
+    @jakarta.validation.constraints.Min(value = 1, message = "Expected lifespan must be at least 1 month")
+    @jakarta.validation.constraints.Max(value = 600, message = "Expected lifespan must not exceed 600 months")
+    private Integer expectedLifespanMonths;
 }

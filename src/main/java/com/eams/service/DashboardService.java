@@ -8,9 +8,9 @@ public interface DashboardService {
 
     DashboardResponse getManagerDashboard();
 
-    DashboardResponse getEmployeeDashboard(
-            Long employeeId
-    );
+    /** Dashboard of the logged-in employee (the path id, if given, must be their own). */
+    DashboardResponse getEmployeeDashboard(Long employeeIdFromPath);
 
+    /** Technician dashboard; "my jobs" counts are for the logged-in technician. */
     DashboardResponse getTechnicianDashboard();
 }

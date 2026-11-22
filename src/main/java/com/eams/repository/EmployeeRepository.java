@@ -16,6 +16,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     boolean existsByUserId(Long userId);
 
+    long countByStatus(com.eams.entity.EmployeeStatus status);
+
     // Check whether a department has employees
     boolean existsByDepartmentId(Long departmentId);
 

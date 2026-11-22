@@ -1,7 +1,10 @@
 package com.eams.service.impl;
 
+import com.eams.config.AppProperties;
 import com.eams.entity.EmailVerificationToken;
 import com.eams.entity.User;
+import com.eams.exception.BadRequestException;
+import com.eams.exception.NotFoundException;
 import com.eams.repository.EmailVerificationTokenRepository;
 import com.eams.repository.UserRepository;
 import com.eams.service.EmailService;
@@ -13,82 +16,51 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Used only when REQUIRE_EMAIL_VERIFICATION=true.
+ */
 @Service
-@RequiredArgsConstructor
 @Transactional
-public class EmailVerificationServiceImpl
-        implements EmailVerificationService {
+@RequiredArgsConstructor
+public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private final EmailVerificationTokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final AppProperties properties;
 
     @Override
     public void createAndSendVerificationToken(Long userId) {
-
         User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
-        // Remove previous verification tokens
         tokenRepository.deleteByUser(user);
 
-        // Generate secure random token
         String token = UUID.randomUUID().toString();
-
-        EmailVerificationToken verificationToken =
-                new EmailVerificationToken();
-
+        EmailVerificationToken verificationToken = new EmailVerificationToken();
         verificationToken.setToken(token);
         verificationToken.setUser(user);
-        verificationToken.setExpiresAt(
-                LocalDateTime.now().plusHours(24)
-        );
+        verificationToken.setExpiresAt(LocalDateTime.now().plusHours(24));
         verificationToken.setUsed(false);
-
         tokenRepository.save(verificationToken);
 
-        String verificationLink =
-                "http://localhost:8080/api/auth/verify-email?token="
-                        + token;
-
-        emailService.sendVerificationEmail(
-                user.getEmail(),
-                verificationLink
-        );
+        String link = properties.backendUrl() + "/api/auth/verify-email?token=" + token;
+        emailService.sendVerificationEmail(user.getEmail(), link);
     }
 
     @Override
     public void verifyEmail(String token) {
-
-        EmailVerificationToken verificationToken =
-                tokenRepository.findByToken(token)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Invalid verification token"
-                                ));
+        EmailVerificationToken verificationToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new BadRequestException("Invalid verification token"));
 
         if (verificationToken.isUsed()) {
-            throw new RuntimeException(
-                    "Verification token has already been used"
-            );
+            throw new BadRequestException("Verification token has already been used");
+        }
+        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Verification token has expired");
         }
 
-        if (verificationToken.getExpiresAt()
-                .isBefore(LocalDateTime.now())) {
-
-            throw new RuntimeException(
-                    "Verification token has expired"
-            );
-        }
-
-        User user = verificationToken.getUser();
-
-        user.setEmailVerified(true);
-
+        verificationToken.getUser().setEmailVerified(true);
         verificationToken.setUsed(true);
-
-        userRepository.save(user);
-        tokenRepository.save(verificationToken);
     }
 }

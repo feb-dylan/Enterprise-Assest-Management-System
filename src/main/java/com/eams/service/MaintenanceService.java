@@ -9,24 +9,18 @@ import java.util.List;
 
 public interface MaintenanceService {
 
-    MaintenanceResponse createMaintenance(
-            MaintenanceCreateRequest request
-    );
+    MaintenanceResponse createMaintenance(MaintenanceCreateRequest request);
 
     List<MaintenanceResponse> getAllMaintenance();
 
-    MaintenanceResponse getMaintenanceById(
-            Long id
-    );
+    /** Jobs assigned to the logged-in technician. */
+    List<MaintenanceResponse> getMyMaintenance();
 
-    List<MaintenanceResponse> getMaintenanceByAsset(
-            Long assetId
-    );
+    MaintenanceResponse getMaintenanceById(Long id);
 
-    MaintenanceResponse updateMaintenance(
-            Long id,
-            MaintenanceUpdateRequest request
-    );
+    List<MaintenanceResponse> getMaintenanceByAsset(Long assetId);
+
+    MaintenanceResponse updateMaintenance(Long id, MaintenanceUpdateRequest request);
 
     List<MaintenanceAssetResponse> getRepairingAssets();
 }

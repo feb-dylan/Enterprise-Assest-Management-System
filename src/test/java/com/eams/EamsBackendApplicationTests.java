@@ -1,13 +1,20 @@
 package com.eams;
 
+import com.eams.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@SpringBootTest
-class EamsBackendApplicationTests {
+import static org.assertj.core.api.Assertions.assertThat;
 
-	@Test
-	void contextLoads() {
-	}
+class EamsBackendApplicationTests extends IntegrationTestBase {
 
+    @Autowired
+    private RoleRepository roles;
+
+    @Test
+    void contextLoadsAndRolesAreSeeded() {
+        for (String role : new String[]{"ADMIN", "MANAGER", "EMPLOYEE", "TECHNICIAN"}) {
+            assertThat(roles.findByName(role)).as("role " + role).isPresent();
+        }
+    }
 }

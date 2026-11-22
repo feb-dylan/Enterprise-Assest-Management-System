@@ -8,66 +8,45 @@ import com.eams.dto.response.AssetRequestResponse;
 
 import java.util.List;
 
+/**
+ * Request -> approve -> assign -> return workflow.
+ *
+ * The acting user (employee, manager, admin) is ALWAYS taken from the JWT.
+ * Methods that accept an employeeId only use it for backward-compatible URLs,
+ * and it must match the logged-in employee.
+ */
 public interface AssetRequestService {
 
-    // 1. Employee creates an asset request
     AssetRequestResponse createRequest(AssetRequestCreateRequest request);
 
-    // 2. Employee views own requests
-    List<AssetRequestResponse> getMyRequests(Long employeeId);
+    List<AssetRequestResponse> getMyRequests(Long employeeIdFromPath);
 
-    // 3. Manager views pending requests
+    List<AssetAssignmentResponse> getMyAssignedAssets(Long employeeIdFromPath);
+
+    AssetAssignmentResponse requestAssetReturn(Long assignmentId, Long employeeIdFromPath,
+                                               AssetReturnRequest request);
+
     List<AssetRequestResponse> getPendingRequests();
 
-    // 4. Manager approves request
-    AssetRequestResponse approveRequest(
-            Long requestId,
-            Long managerId
-    );
-
-    // 5. Manager rejects request
-    AssetRequestResponse rejectRequest(
-            Long requestId,
-            Long managerId,
-            AssetRequestRejectRequest request
-    );
-
-    // 6. Admin views approved requests
     List<AssetRequestResponse> getApprovedRequests();
 
-    // 7. Admin assigns asset
-    AssetAssignmentResponse assignAsset(
-            Long requestId,
-            Long adminId
-    );
+    List<AssetRequestResponse> getAllRequests();
 
-    // 8. Employee requests asset return
-    AssetAssignmentResponse requestAssetReturn(
-            Long assignmentId,
-            Long employeeId,
-            AssetReturnRequest request
-    );
+    AssetRequestResponse approveRequest(Long requestId);
 
-    // 9. Admin receives returned asset
-    AssetAssignmentResponse returnAsset(
-            Long assignmentId,
-            Long adminId,
-            AssetReturnRequest request
-    );
+    AssetRequestResponse rejectRequest(Long requestId, AssetRequestRejectRequest request);
 
-    // 10. Admin views assignment history
+    /**
+     * @param assetId required for category-based requests (the admin picks the unit);
+     *                ignored / must match for requests that name a specific asset
+     */
+    AssetAssignmentResponse assignAsset(Long requestId, Long assetId);
+
+    AssetAssignmentResponse returnAsset(Long assignmentId, AssetReturnRequest request);
+
     List<AssetAssignmentResponse> getAssignmentHistory();
 
-    // 11. Get one request by ID
     AssetRequestResponse getRequestById(Long id);
 
-    // 12. Employee views currently assigned assets
-    List<AssetAssignmentResponse> getMyAssignedAssets(
-            Long employeeId
-    );
-
-    // 13. Get one assignment by ID
-    AssetAssignmentResponse getAssignmentById(
-            Long assignmentId
-    );
+    AssetAssignmentResponse getAssignmentById(Long assignmentId);
 }

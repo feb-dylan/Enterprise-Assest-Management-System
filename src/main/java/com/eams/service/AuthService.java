@@ -10,5 +10,9 @@ public interface AuthService {
 
     LoginResponse login(LoginRequest request);
 
-    void changePassword(String email, String currentPassword, String newPassword);
+    /**
+     * Changes the password and invalidates every existing token for this user.
+     * Returns a fresh token so the current session can continue.
+     */
+    LoginResponse changePassword(String email, String currentPassword, String newPassword);
 }

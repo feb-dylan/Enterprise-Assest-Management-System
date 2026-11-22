@@ -1,5 +1,7 @@
 package com.eams.entity;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -77,6 +79,7 @@ public class Asset {
             nullable = false,
             length = 20
     )
+    @Builder.Default
     private AssetStatus status = AssetStatus.AVAILABLE;
 
     @Column(length = 255)
@@ -84,6 +87,29 @@ public class Asset {
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
+
+    @Column(name = "warranty_expiry_date")
+    private LocalDate warrantyExpiryDate;
+
+    @Column(length = 150)
+    private String vendor;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "disposal_method", length = 20)
+    private DisposalMethod disposalMethod;
+
+    @Column(name = "retired_at")
+    private LocalDateTime retiredAt;
+
+    /**
+     * Optimistic locking: two admins changing the same asset
+     * at the same time can no longer silently overwrite each other.
+     */
+    @Version
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    @Builder.Default
+    private Long version = 0L;
 
     @Column(
             name = "created_at",

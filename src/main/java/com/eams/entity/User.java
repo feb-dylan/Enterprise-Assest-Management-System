@@ -1,5 +1,7 @@
 package com.eams.entity;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,6 +37,15 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     @Builder.Default
     private boolean emailVerified = false;
+
+    /**
+     * Incremented on password change/reset.
+     * Every JWT carries this number; old tokens stop working immediately.
+     */
+    @Column(name = "token_version", nullable = false)
+    @ColumnDefault("0")
+    @Builder.Default
+    private int tokenVersion = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -40,4 +40,10 @@ public class AssetRequestDto {
 
     @Size(max = 255)
     private String location;
+
+    /** Optional: warranty end date (drives warranty alerts). */
+    private LocalDate warrantyExpiryDate;
+
+    @Size(max = 150)
+    private String vendor;
 }

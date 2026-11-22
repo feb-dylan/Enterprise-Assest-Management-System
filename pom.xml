@@ -140,6 +140,26 @@
         </dependency>
 
         <!-- ====================================== -->
+        <!-- PDF (QR label sheets) -->
+        <!-- ====================================== -->
+
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+
+        <!-- ====================================== -->
+        <!-- API DOCS (Swagger UI at /swagger-ui.html) -->
+        <!-- ====================================== -->
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <!-- ====================================== -->
         <!-- DEVELOPMENT -->
         <!-- ====================================== -->
 
@@ -175,6 +195,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- In-memory DB so tests run without MySQL -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

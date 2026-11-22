@@ -44,4 +44,8 @@ public class MaintenanceResponse {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private Long technicianUserId;
+    private String technicianEmail;
+    private Long damageReportId;
 }

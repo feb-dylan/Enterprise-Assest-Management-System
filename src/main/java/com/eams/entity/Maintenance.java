@@ -28,6 +28,16 @@ public class Maintenance {
     @Column(length = 100)
     private String technician;
 
+    /** Technician user responsible for this job (replaces free-text name). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "technician_user_id")
+    private User technicianUser;
+
+    /** The damage report this maintenance job repairs. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "damage_report_id")
+    private DamageReport damageReport;
+
     @Column(nullable = false, length = 2000)
     private String description;
 

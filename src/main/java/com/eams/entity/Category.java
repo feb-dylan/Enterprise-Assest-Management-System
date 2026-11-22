@@ -33,6 +33,13 @@ public class Category {
     @Column(length = 255)
     private String description;
 
+    /**
+     * Expected useful life in months (e.g. laptop = 48).
+     * Used for health score and straight-line depreciation.
+     */
+    @Column(name = "expected_lifespan_months")
+    private Integer expectedLifespanMonths;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -37,4 +37,7 @@ public class MaintenanceUpdateRequest {
             message = "Notes must not exceed 1000 characters"
     )
     private String notes;
+
+    /** Optional: reassign the job to another technician user. */
+    private Long technicianUserId;
 }

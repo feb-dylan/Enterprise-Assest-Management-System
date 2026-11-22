@@ -1,5 +1,11 @@
 package com.eams.entity;
 
+import java.math.BigDecimal;
+
+import java.util.ArrayList;
+
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -42,6 +48,40 @@ public class DamageReport {
 
     @Column(name = "resolution_note", length = 1000)
     private String resolutionNote;
+
+    @OneToMany(mappedBy = "damageReport", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<DamagePhoto> photos = new ArrayList<>();
+
+    // ----- AI triage (filled in asynchronously after a photo upload) -----
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ai_status", length = 20)
+    private AiTriageStatus aiStatus;
+
+    @Column(name = "ai_severity", length = 20)
+    private String aiSeverity;
+
+    @Column(name = "ai_damage_type", length = 50)
+    private String aiDamageType;
+
+    @Column(name = "ai_suggested_action", length = 20)
+    private String aiSuggestedAction;
+
+    @Column(name = "ai_summary", length = 1000)
+    private String aiSummary;
+
+    @Column(name = "ai_cost_min", precision = 15, scale = 2)
+    private BigDecimal aiCostMin;
+
+    @Column(name = "ai_cost_max", precision = 15, scale = 2)
+    private BigDecimal aiCostMax;
+
+    @Column(name = "ai_safety_risk")
+    private Boolean aiSafetyRisk;
+
+    @Column(name = "ai_analyzed_at")
+    private LocalDateTime aiAnalyzedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

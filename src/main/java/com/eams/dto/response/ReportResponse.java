@@ -39,5 +39,5 @@ public class ReportResponse {
 
     private long cancelled;
 
-    private double totalRepairCost;
+    private java.math.BigDecimal totalRepairCost;
 }

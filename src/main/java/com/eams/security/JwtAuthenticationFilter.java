@@ -1,5 +1,6 @@
 package com.eams.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,13 +8,23 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
+/**
+ * Reads "Authorization: Bearer <jwt>" and logs the user in for this request.
+ *
+ * The token is rejected (request continues as anonymous -> 401) when:
+ *  - signature/expiry is invalid
+ *  - the user no longer exists
+ *  - the user is disabled or their employee profile is INACTIVE
+ *  - the password was changed after the token was issued (token version mismatch)
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -28,47 +39,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authorizationHeader =
-                request.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
 
-        if (authorizationHeader == null ||
-                !authorizationHeader.startsWith("Bearer ")) {
+        if (header != null
+                && header.startsWith("Bearer ")
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            filterChain.doFilter(request, response);
-            return;
-        }
+            String token = header.substring(7);
+            Optional<Claims> claims = jwtService.parse(token);
 
-        String token = authorizationHeader.substring(7);
-
-        if (!jwtService.isTokenValid(token)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String email = jwtService.extractUsername(token);
-
-        if (SecurityContextHolder.getContext()
-                .getAuthentication() == null) {
-
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(email);
-
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-
-            authentication.setDetails(
-                    new WebAuthenticationDetailsSource()
-                            .buildDetails(request)
-            );
-
-            SecurityContextHolder.getContext()
-                    .setAuthentication(authentication);
+            if (claims.isPresent()) {
+                authenticate(claims.get(), request);
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void authenticate(Claims claims, HttpServletRequest request) {
+        AppUserPrincipal principal;
+        try {
+            principal = userDetailsService.loadUserByUsername(claims.getSubject());
+        } catch (UsernameNotFoundException e) {
+            return;
+        }
+
+        if (!principal.isEnabled()) {
+            return;
+        }
+
+        Number tokenVersion = claims.get(JwtService.CLAIM_TOKEN_VERSION, Number.class);
+        int versionInToken = tokenVersion == null ? 0 : tokenVersion.intValue();
+        if (versionInToken != principal.tokenVersion()) {
+            return;
+        }
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        principal, null, principal.getAuthorities());
+        authentication.setDetails(
+                new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

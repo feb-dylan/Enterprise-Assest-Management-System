@@ -91,5 +91,12 @@ public class DashboardResponse {
     // COST
     // =========================================================
 
-    private double totalRepairCost;
+    private java.math.BigDecimal totalRepairCost;
+
+    private long warrantyExpiringSoon;
+    private long unassignedApprovedRequests;
+
+    /** [{label, value}] e.g. assets per category */
+    private java.util.List<ChartPoint> assetsByCategory;
+    private java.util.List<ChartPoint> repairCostByCategory;
 }
