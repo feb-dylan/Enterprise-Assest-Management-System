@@ -12,6 +12,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,29 @@ public class OpenRouterClient {
         return properties.ai().effectiveVisionModel();
     }
 
+    /** OpenRouter accepts at most this many models in a fallback list. */
+    static final int MAX_FALLBACK_MODELS = 3;
+
+    /**
+     * Writes the model setting into the request body.
+     * <p>
+     * A comma-separated setting ("a:free, b:free, c:free") becomes OpenRouter's
+     * {@code models} fallback list: when a shared free model is busy (HTTP 429),
+     * OpenRouter tries the next one instead of failing.
+     */
+    static void putModel(Map<String, Object> body, String model) {
+        List<String> models = Arrays.stream(model.split(","))
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .limit(MAX_FALLBACK_MODELS)
+                .toList();
+        if (models.size() > 1) {
+            body.put("models", models);
+        } else {
+            body.put("model", models.isEmpty() ? model.trim() : models.getFirst());
+        }
+    }
+
     /**
      * Sends one chat request.
      *
@@ -88,7 +112,7 @@ public class OpenRouterClient {
     public ChatResult chat(String model, List<Map<String, Object>> messages,
                            List<Map<String, Object>> tools, int maxTokens) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", model);
+        putModel(body, model);
         body.put("messages", messages);
         body.put("max_tokens", maxTokens);
         if (tools != null && !tools.isEmpty()) {

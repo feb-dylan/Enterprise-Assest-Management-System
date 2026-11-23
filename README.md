@@ -57,7 +57,7 @@ The tests use H2 and do not need MySQL. There are 34 integration tests covering 
 | `CORS_ALLOWED_ORIGINS` | no | `http://localhost:5173` | Frontend origin(s), comma-separated |
 | `FRONTEND_URL` | no | `http://localhost:5173` | Used in QR codes and email links |
 | `OPENROUTER_API_KEY` | no | – | OpenRouter key (free at openrouter.ai/keys). AI features are *disabled* without it |
-| `AI_MODEL` | no | – | OpenRouter model id for "Ask EAMS". Must support **tools**. Free ones end in `:free` |
+| `AI_MODEL` | no | – | OpenRouter model id for "Ask EAMS". Must support **tools**. Free ones end in `:free`. Up to 3 ids separated by commas = fallback list when a free model is busy |
 | `AI_VISION_MODEL` | no | = `AI_MODEL` | Model for damage-photo triage. Must accept **images** |
 | `MAIL_ENABLED`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | no | mail off | Email notifications. When mail is off, reset links are printed in the server log |
 | `PUBLIC_REGISTRATION` | no | `true` | Set to `false` for invite-only sign-up |
