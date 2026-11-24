@@ -65,6 +65,11 @@ public final class Requests {
             @Size(max = 500)
             String note) {}
 
+    /** Admin -> managers: "approve a request so this idle asset can be assigned". */
+    public record IdleAssetReminderRequest(
+            @Size(max = 300, message = "Note must not exceed 300 characters")
+            String note) {}
+
     public record AssistantRequest(
             @NotBlank(message = "Question is required")
             @Size(max = 1000, message = "Question must not exceed 1000 characters")

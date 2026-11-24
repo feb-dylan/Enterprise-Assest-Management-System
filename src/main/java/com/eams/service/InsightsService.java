@@ -1,6 +1,11 @@
 package com.eams.service;
 
+import com.eams.dto.response.AssetRequestResponse;
 import com.eams.dto.response.ChartPoint;
+import com.eams.exception.BadRequestException;
+import com.eams.exception.NotFoundException;
+import com.eams.repository.EmployeeRepository;
+import com.eams.security.CurrentUserService;
 import com.eams.dto.response.Responses.AssetHealthResponse;
 import com.eams.dto.response.Responses.IdleAsset;
 import com.eams.dto.response.Responses.InsightsSummary;
@@ -8,6 +13,7 @@ import com.eams.entity.Asset;
 import com.eams.entity.AssetAssignment;
 import com.eams.entity.AssetRequest;
 import com.eams.entity.AssetStatus;
+import com.eams.entity.RequestPriority;
 import com.eams.entity.RequestStatus;
 import com.eams.repository.AssetAssignmentRepository;
 import com.eams.repository.AssetRepository;
@@ -40,6 +46,11 @@ public class InsightsService {
     private final AssetRequestRepository requestRepository;
     private final MaintenanceRepository maintenanceRepository;
     private final AssetHealthService healthService;
+    private final EmployeeRepository employeeRepository;
+    private final NotificationService notificationService;
+    private final AuditService auditService;
+    private final CurrentUserService currentUser;
+    private final DtoMapper dtoMapper;
 
     @Transactional(readOnly = true)
     public List<AssetHealthResponse> replacementCandidates(int limit) {
@@ -60,11 +71,8 @@ public class InsightsService {
         LocalDate today = LocalDate.now();
 
         Map<Long, Long> openCategoryRequests = new HashMap<>();
-        Stream.concat(
-                requestRepository.findByStatus(RequestStatus.PENDING).stream(),
-                requestRepository.findByStatus(RequestStatus.APPROVED).stream())
+        waitingCategoryRequests()
                 .map(AssetRequest::getCategory)
-                .filter(c -> c != null)
                 .forEach(c -> openCategoryRequests.merge(c.getId(), 1L, Long::sum));
 
         List<IdleAsset> result = new ArrayList<>();
@@ -89,6 +97,74 @@ public class InsightsService {
         }
         result.sort(Comparator.comparingLong(IdleAsset::idleDays).reversed());
         return result;
+    }
+
+    /** "Any item of a category" requests that still wait for an asset (pending or approved). */
+    private Stream<AssetRequest> waitingCategoryRequests() {
+        return Stream.concat(
+                        requestRepository.findByStatus(RequestStatus.PENDING).stream(),
+                        requestRepository.findByStatus(RequestStatus.APPROVED).stream())
+                .filter(r -> r.getCategory() != null);
+    }
+
+    /** The waiting requests this idle asset could fill (same category), most urgent first. */
+    @Transactional(readOnly = true)
+    public List<AssetRequestResponse> waitingRequestsFor(Long assetId) {
+        Asset asset = findAsset(assetId);
+        if (asset.getCategory() == null) {
+            return List.of();
+        }
+        Long categoryId = asset.getCategory().getId();
+        return waitingCategoryRequests()
+                .filter(r -> r.getCategory().getId().equals(categoryId))
+                .sorted(Comparator.comparing((AssetRequest r) -> r.getPriority() != null
+                                ? r.getPriority() : RequestPriority.NORMAL).reversed()
+                        .thenComparing(AssetRequest::getRequestDate,
+                                Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(r -> dtoMapper.request(r, null))
+                .toList();
+    }
+
+    /**
+     * An admin asks the managers to approve one of the PENDING requests this idle asset
+     * could fill (the admin can only assign after a manager approves).
+     * Every manager gets a notification (bell, live) that opens "Pending Requests".
+     */
+    @Transactional
+    public void remindManagers(Long assetId, String note) {
+        Asset asset = findAsset(assetId);
+        long pending = waitingRequestsFor(assetId).stream()
+                .filter(r -> r.getStatus() == RequestStatus.PENDING)
+                .count();
+        if (pending == 0) {
+            throw new BadRequestException("No requests are waiting for manager approval.");
+        }
+
+        String sender = employeeRepository.findByUserId(currentUser.userId())
+                .map(DtoMapper::fullName)
+                .orElse(currentUser.principal().email());
+
+        StringBuilder message = new StringBuilder()
+                .append(sender).append(" (admin): ")
+                .append(asset.getAssetCode()).append(" - ").append(asset.getName())
+                .append(" is unused in the store, and ").append(pending)
+                .append(" request(s) for a ").append(asset.getCategory().getName())
+                .append(" are waiting for your approval. ")
+                .append("Please approve one, then I can assign this asset instead of buying a new one.");
+        if (note != null && !note.isBlank()) {
+            message.append(" Note: ").append(note.trim());
+        }
+
+        notificationService.notifyRole("MANAGER", "IDLE_ASSET_REMINDER",
+                "Please approve a request for idle " + asset.getAssetCode(),
+                message.toString(), "/requests/pending");
+        auditService.record(asset.getId(), "ASSET", asset.getId(), "REMINDER_SENT",
+                sender + " reminded managers about " + pending + " pending request(s)");
+    }
+
+    private Asset findAsset(Long assetId) {
+        return assetRepository.findById(assetId)
+                .orElseThrow(() -> new NotFoundException("Asset not found with id: " + assetId));
     }
 
     @Transactional(readOnly = true)

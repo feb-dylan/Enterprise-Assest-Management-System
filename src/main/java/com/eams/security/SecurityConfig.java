@@ -241,6 +241,7 @@ public class SecurityConfig {
 
                         // ================= INSIGHTS / AI =================
                         .requestMatchers(HttpMethod.GET, "/api/insights/**").hasAnyRole(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/insights/idle-assets/*/remind").hasRole(ADMIN)
                         .requestMatchers(HttpMethod.POST, "/api/assistant/ask").hasAnyRole(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/assistant/status").authenticated()
 

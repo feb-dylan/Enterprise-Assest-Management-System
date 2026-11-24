@@ -1,5 +1,7 @@
 package com.eams.controller;
 
+import com.eams.dto.request.Requests.IdleAssetReminderRequest;
+import com.eams.dto.response.AssetRequestResponse;
 import com.eams.dto.response.Responses.AssetHealthResponse;
 import com.eams.dto.response.Responses.IdleAsset;
 import com.eams.dto.response.Responses.InsightsSummary;
@@ -7,7 +9,11 @@ import com.eams.service.AssetHealthService;
 import com.eams.service.InsightsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,5 +52,19 @@ public class InsightsController {
     @GetMapping("/idle-assets")
     public ResponseEntity<List<IdleAsset>> idleAssets(@RequestParam(defaultValue = "90") int days) {
         return ResponseEntity.ok(insightsService.idleAssets(days));
+    }
+
+    /** The waiting "any item of this category" requests an idle asset could fill. */
+    @GetMapping("/idle-assets/{assetId}/waiting-requests")
+    public ResponseEntity<List<AssetRequestResponse>> waitingRequests(@PathVariable Long assetId) {
+        return ResponseEntity.ok(insightsService.waitingRequestsFor(assetId));
+    }
+
+    /** Admin only: ask the managers to approve a pending request this idle asset could fill. */
+    @PostMapping("/idle-assets/{assetId}/remind")
+    public ResponseEntity<Void> remindManagers(@PathVariable Long assetId,
+                                             @Valid @RequestBody(required = false) IdleAssetReminderRequest body) {
+        insightsService.remindManagers(assetId, body != null ? body.note() : null);
+        return ResponseEntity.noContent().build();
     }
 }

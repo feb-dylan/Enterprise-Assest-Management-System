@@ -278,4 +278,45 @@ class NewFeaturesTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.status").value("REJECTED"))
                 .andExpect(jsonPath("$.rejectionReason").value("Asset was retired"));
     }
+
+    @Test
+    void idleAssetShowsWaitingRequestsAndAdminCanRemindManagers() throws Exception {
+        String admin = login(createUser("ADMIN"));
+        String manager = login(createUser("MANAGER"));
+        User empUser = createUser("EMPLOYEE");
+        createEmployeeProfile(empUser);
+        String emp = login(empUser);
+
+        long categoryId = createCategory(admin);
+        long assetId = createAsset(admin, categoryId, 900);
+        String code = assetCode(admin, assetId);
+        long req = id(doPost(emp, "/api/requests", "{\"categoryId\":" + categoryId
+                + ",\"reason\":\"Need one\",\"priority\":\"HIGH\"}").andExpect(status().isCreated()));
+
+        // manager and admin both see the waiting request this idle asset could fill
+        for (String token : new String[] {manager, admin}) {
+            doGet(token, "/api/insights/idle-assets/" + assetId + "/waiting-requests")
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].id").value(req))
+                    .andExpect(jsonPath("$[0].status").value("PENDING"));
+        }
+
+        // admin reminds the managers -> manager gets a notification that opens Pending Requests
+        doPost(admin, "/api/insights/idle-assets/" + assetId + "/remind", "{\"note\":\"Sales needs it Monday\"}")
+                .andExpect(status().isNoContent());
+        String match = "$[?(@.type == 'IDLE_ASSET_REMINDER' && @.title =~ /.*" + code + ".*/)]";
+        doGet(manager, "/api/notifications?limit=50")
+                .andExpect(jsonPath(match + ".link").value("/requests/pending"))
+                .andExpect(jsonPath(match + ".message")
+                        .value(org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("Sales needs it Monday"))));
+
+        // only admins can send reminders
+        doPost(manager, "/api/insights/idle-assets/" + assetId + "/remind", null).andExpect(status().isForbidden());
+        doPost(emp, "/api/insights/idle-assets/" + assetId + "/remind", null).andExpect(status().isForbidden());
+
+        // once the manager approved it, nothing waits for a manager any more -> 400
+        doPut(manager, "/api/requests/" + req + "/approve", null).andExpect(status().isOk());
+        doPost(admin, "/api/insights/idle-assets/" + assetId + "/remind", null).andExpect(status().isBadRequest());
+    }
 }
